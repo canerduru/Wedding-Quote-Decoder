@@ -9,6 +9,9 @@ test('emptyTerms: bos varsayilanlar', () => {
     minimumSpendEur: 0,
     depositNote: { tr: '', en: '' },
     cancellationNote: { tr: '', en: '' },
+    durationNote: { tr: '', en: '' },
+    datesNote: { tr: '', en: '' },
+    guestsNote: { tr: '', en: '' },
     validUntil: '',
   });
   assert.notEqual(emptyTerms().depositNote, emptyTerms().depositNote);
@@ -44,4 +47,19 @@ test('validityStatus: kalan gun, son gun, dolmus, belirtilmemis', () => {
   assert.deepEqual(validityStatus('2026-11-14', today), { state: 'expired', days: -1 });
   assert.deepEqual(validityStatus('', today), { state: 'none', days: null });
   assert.deepEqual(validityStatus('gecersiz', today), { state: 'none', days: null });
+});
+
+test('termsFromDecoded: sure, tarih ve davetli notlarini alir, bozuklari bosaltir', () => {
+  const t = termsFromDecoded({
+    durationNote: { tr: '1 saat (15:00-16:00)', en: '1 hour (3-4 PM)' },
+    datesNote: { tr: '29 veya 30 Nisan 2027', en: 'April 29 or 30, 2027' },
+    guestsNote: { tr: '13 kişi, min. 10 garanti', en: '13 guests, 10 guaranteed' },
+  });
+  assert.equal(t.durationNote.tr, '1 saat (15:00-16:00)');
+  assert.equal(t.datesNote.en, 'April 29 or 30, 2027');
+  assert.equal(t.guestsNote.tr, '13 kişi, min. 10 garanti');
+  const bad = termsFromDecoded({ durationNote: 'duz', datesNote: 5, guestsNote: null });
+  assert.deepEqual(bad.durationNote, { tr: '', en: '' });
+  assert.deepEqual(bad.datesNote, { tr: '', en: '' });
+  assert.deepEqual(bad.guestsNote, { tr: '', en: '' });
 });

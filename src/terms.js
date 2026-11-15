@@ -5,6 +5,9 @@ export const emptyTerms = () => ({
   minimumSpendEur: 0,
   depositNote: { tr: '', en: '' },
   cancellationNote: { tr: '', en: '' },
+  durationNote: { tr: '', en: '' },
+  datesNote: { tr: '', en: '' },
+  guestsNote: { tr: '', en: '' },
   validUntil: '',
 });
 
@@ -20,6 +23,9 @@ export function termsFromDecoded(raw) {
     minimumSpendEur: Number.isFinite(minimum) && minimum > 0 ? minimum : 0,
     depositNote: biText(raw?.depositNote),
     cancellationNote: biText(raw?.cancellationNote),
+    durationNote: biText(raw?.durationNote),
+    datesNote: biText(raw?.datesNote),
+    guestsNote: biText(raw?.guestsNote),
     validUntil: validIsoDate(raw?.validUntil),
   };
 }

@@ -102,6 +102,33 @@ const RESPONSE_SCHEMA = {
       },
       required: ['tr', 'en'],
     },
+    durationNote: {
+      type: 'OBJECT',
+      description: "How long the rental / event time is and its hours (e.g. '2 hours, 4-6 PM, extra hour 500 EUR', '1 hour minimum')",
+      properties: {
+        tr: { type: 'STRING', description: 'Turkish summary, at most 15 words; empty string if the document does not say.' },
+        en: { type: 'STRING', description: 'English summary, at most 15 words; empty string if the document does not say.' },
+      },
+      required: ['tr', 'en'],
+    },
+    datesNote: {
+      type: 'OBJECT',
+      description: "The event date(s) requested or the available dates offered in the document (e.g. 'April 29 or 30, 2027', 'April 1-6, 9-13, 17-22, 2027')",
+      properties: {
+        tr: { type: 'STRING', description: 'Turkish summary, at most 15 words; empty string if the document does not say.' },
+        en: { type: 'STRING', description: 'English summary, at most 15 words; empty string if the document does not say.' },
+      },
+      required: ['tr', 'en'],
+    },
+    guestsNote: {
+      type: 'OBJECT',
+      description: "Guest count the quote is prepared for and any minimum guarantee (e.g. '13 guests, 10 minimum guaranteed')",
+      properties: {
+        tr: { type: 'STRING', description: 'Turkish summary, at most 15 words; empty string if the document does not say.' },
+        en: { type: 'STRING', description: 'English summary, at most 15 words; empty string if the document does not say.' },
+      },
+      required: ['tr', 'en'],
+    },
     validUntil: {
       type: 'STRING',
       description:
@@ -176,6 +203,9 @@ const RESPONSE_SCHEMA = {
     'depositNote',
     'cancellationNote',
     'validUntil',
+    'durationNote',
+    'datesNote',
+    'guestsNote',
     'flags',
   ],
 };
@@ -205,6 +235,7 @@ Rules:
    - minimumSpend: the minimum spend / minimum guarantee / minimum package, in the ORIGINAL currency; 0 if the document does not state one.
    - depositNote, cancellationNote: short summaries (at most 15 words) of what the document says about deposit / payment schedule and cancellation / date-change terms; empty strings if it says nothing.
    - validUntil: the date the quote stays valid as YYYY-MM-DD, or '' if not stated.
+   - durationNote: how long the venue/service is booked and the time window (venue prices are not comparable without it); datesNote: requested or offered date(s); guestsNote: the guest count the quote assumes and any minimum guarantee. At most 15 words each; empty strings if the document says nothing.
    - Small recurring charges (overtime, corkage, cake cutting, cleaning, extra hours) are hidden costs: put each as its own flag.
    - NEVER invent terms. Missing information must stay 0 or empty so the app can show it as not stated.
 6. Flag types:
