@@ -1,5 +1,6 @@
 import { clampGuests } from './guests.js';
 import { DEFAULT_RATES } from './rates.js';
+import { termsFromDecoded } from './terms.js';
 
 export const STORAGE_KEY = 'wqd:v1';
 
@@ -64,6 +65,7 @@ function sanitizeVenue(raw) {
     capacityLabel: biText(raw.capacityLabel),
     sourceLabel: biText(raw.sourceLabel),
     sourceCurrency: CURRENCIES.includes(raw.sourceCurrency) ? raw.sourceCurrency : '',
+    ...termsFromDecoded(raw),
     baseFeeEur: num(raw.baseFeeEur),
     fbPerPersonEur: num(raw.fbPerPersonEur),
     flags: Array.isArray(raw.flags) ? raw.flags.map(sanitizeFlag) : [],

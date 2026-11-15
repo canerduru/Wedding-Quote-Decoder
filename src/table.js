@@ -24,6 +24,11 @@ export function buildComparison({ venues, guestCount, categories, categoryOf }) 
       deltaEur: getDeltaFromLowest(venue, venues, guestCount),
       best: isBestValue(venue, venues, guestCount),
       hasPrice: b.turnkeyTotalEur > 0,
+      minimumSpendEur: Number(venue.minimumSpendEur) || 0,
+      belowMinimum: (Number(venue.minimumSpendEur) || 0) > 0 && b.turnkeyTotalEur > 0 && b.turnkeyTotalEur < Number(venue.minimumSpendEur),
+      depositNote: venue.depositNote || { tr: '', en: '' },
+      cancellationNote: venue.cancellationNote || { tr: '', en: '' },
+      validUntil: venue.validUntil || '',
       cells: Object.fromEntries(categories.map((cat) => [cat, cellFor(venue, cat, categoryOf, guestCount)])),
     };
   });

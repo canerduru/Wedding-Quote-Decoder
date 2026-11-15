@@ -136,3 +136,26 @@ test('kaynak para birimi kart ve kalemde korunur, gecersizi temizlenir', () => {
   assert.equal(bad.sourceCurrency, '');
   assert.equal(bad.flags[0].sourceCurrency, undefined);
 });
+
+test('teklif kosullari korunur ve bozuk degerler temizlenir', () => {
+  const st = state();
+  Object.assign(st.venues[0], {
+    minimumSpendEur: 7200,
+    depositNote: { tr: '%30 kapora', en: '30% deposit' },
+    cancellationNote: { tr: '60 gun', en: '60 days' },
+    validUntil: '2026-11-20',
+  });
+  const ok = parseState(serializeState(st)).venues[0];
+  assert.equal(ok.minimumSpendEur, 7200);
+  assert.equal(ok.depositNote.en, '30% deposit');
+  assert.equal(ok.cancellationNote.tr, '60 gun');
+  assert.equal(ok.validUntil, '2026-11-20');
+
+  const raw = JSON.parse(serializeState(st));
+  Object.assign(raw.venues[0], { minimumSpendEur: 'x', depositNote: 5, validUntil: '2026-13-45' });
+  const bad = parseState(JSON.stringify(raw)).venues[0];
+  assert.equal(bad.minimumSpendEur, 0);
+  assert.deepEqual(bad.depositNote, { tr: '', en: '' });
+  assert.equal(bad.validUntil, '');
+  assert.equal(parseState(serializeState(state())).venues[0].minimumSpendEur, 0);
+});

@@ -154,6 +154,7 @@
       import * as rates from '/src/rates.js';
       import * as guests from '/src/guests.js';
       import * as table from '/src/table.js';
+      import * as terms from '/src/terms.js';
 
       window.__CALC__ = calc;
       window.__PERSIST__ = persist;
@@ -163,6 +164,7 @@
       window.__RATES__ = rates;
       window.__GUESTS__ = guests;
       window.__TABLE__ = table;
+      window.__TERMS__ = terms;
 
       window.Alpine = Alpine;
       Alpine.start();
@@ -234,6 +236,20 @@
           btnChooseFile: 'Çoklu Dosya Seç veya Sürükle',
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
+          termsTitle: 'Teklif Koşulları',
+          termsMinSpend: 'Minimum harcama',
+          termsDeposit: 'Depozito & ödeme',
+          termsCancel: 'İptal koşulları',
+          termsValid: 'Geçerlilik',
+          termsNotStated: 'Belirtilmedi',
+          termsBelowMinimum: 'Hesaplanan toplam minimum harcamanın altında. Mekana nasıl uygulandığını sorun.',
+          minSpendEditLabel: 'Minimum Harcama (€)',
+          depositEditLabel: 'Depozito & ödeme',
+          cancelEditLabel: 'İptal koşulları',
+          validEditLabel: 'Teklif geçerlilik tarihi',
+          validToday: 'bugün son gün',
+          validDaysLeft: 'gün kaldı',
+          validExpired: 'süresi dolmuş',
           viewCards: 'Kartlar',
           viewTable: 'Tablo',
           viewSwitchLabel: 'Görünüm',
@@ -401,6 +417,20 @@
           btnChooseFile: 'Select or Drop Multiple Files',
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
+          termsTitle: 'Quote Terms',
+          termsMinSpend: 'Minimum spend',
+          termsDeposit: 'Deposit & payment',
+          termsCancel: 'Cancellation',
+          termsValid: 'Valid until',
+          termsNotStated: 'Not stated',
+          termsBelowMinimum: 'The calculated total is below the minimum spend. Ask the venue how it applies.',
+          minSpendEditLabel: 'Minimum Spend (€)',
+          depositEditLabel: 'Deposit & payment',
+          cancelEditLabel: 'Cancellation terms',
+          validEditLabel: 'Quote valid until',
+          validToday: 'last day today',
+          validDaysLeft: 'days left',
+          validExpired: 'expired',
           viewCards: 'Cards',
           viewTable: 'Table',
           viewSwitchLabel: 'View',
@@ -644,6 +674,29 @@
             this.$nextTick(() => {
               if (window.lucide) window.lucide.createIcons();
             });
+          },
+
+          validityText(validUntil) {
+            const status = window.__TERMS__.validityStatus(validUntil);
+            if (status.state === 'none') return '';
+            const date = new Date(`${validUntil}T00:00:00`).toLocaleDateString(this.lang === 'tr' ? 'tr-TR' : 'en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            });
+            if (status.state === 'expired') return `${date} · ${this.t('validExpired')}`;
+            return status.days === 0 ? `${date} · ${this.t('validToday')}` : `${date} · ${status.days} ${this.t('validDaysLeft')}`;
+          },
+
+          validityClass(validUntil) {
+            const state = window.__TERMS__.validityStatus(validUntil).state;
+            return state === 'expired' ? 'text-peony font-semibold' : 'text-obsidian';
+          },
+
+          isBelowMinimum(venue) {
+            const min = Number(venue.minimumSpendEur) || 0;
+            const total = this.calculateBreakdown(venue).turnkeyTotalEur;
+            return min > 0 && total > 0 && total < min;
           },
 
           showTable() {
@@ -1151,6 +1204,11 @@
               target.fbPerPersonEur = source.fbPerPersonEur;
             }
             if (!target.sourceCurrency) target.sourceCurrency = source.sourceCurrency || '';
+            if (!(Number(target.minimumSpendEur) > 0) && Number(source.minimumSpendEur) > 0) target.minimumSpendEur = source.minimumSpendEur;
+            ['depositNote', 'cancellationNote'].forEach((key) => {
+              if (!target[key]?.tr && !target[key]?.en && (source[key]?.tr || source[key]?.en)) target[key] = { ...source[key] };
+            });
+            if (!target.validUntil && source.validUntil) target.validUntil = source.validUntil;
             if (!target.uploadedPreviewUrl && source.uploadedPreviewUrl) {
               target.uploadedPreviewUrl = source.uploadedPreviewUrl;
             }
@@ -1210,6 +1268,7 @@
               venueType: { tr: 'Manuel Kart', en: 'Manual Card' },
               capacityLabel: { tr: 'Düzenlenebilir', en: 'Editable' },
               sourceLabel: { tr: 'Manuel eklenen teklif', en: 'Manually added quote' },
+              ...window.__TERMS__.emptyTerms(),
               baseFeeEur: 0,
               fbPerPersonEur: 0,
               flags: [
@@ -1464,6 +1523,7 @@
                 en: `File: ${addon.fileName}${addon.originalCurrencyNote?.en ? ' · ' + addon.originalCurrencyNote.en : ''}`,
               },
               sourceCurrency: addon.sourceCurrency || '',
+              ...window.__TERMS__.emptyTerms(),
               baseFeeEur: addon.baseFeeEur,
               fbPerPersonEur: addon.fbPerPersonEur,
               flags: addon.rawFlags
@@ -1632,6 +1692,7 @@
                       en: `File: ${file.name}${v.originalCurrencyNote?.en ? ' · ' + v.originalCurrencyNote.en : ''}`,
                     },
                     sourceCurrency: v.sourceCurrency,
+                    ...window.__TERMS__.termsFromDecoded(v),
                     baseFeeEur: Number(v.baseFeeEur) || 0,
                     fbPerPersonEur: Number(v.fbPerPersonEur) || 0,
                     flags: Array.isArray(v.flags)
@@ -1740,6 +1801,7 @@
                 tr: `Dosya: ${entry.name} · Rakamları girin`,
                 en: `File: ${entry.name} · Enter figures`,
               },
+              ...window.__TERMS__.emptyTerms(),
               baseFeeEur: 0,
               fbPerPersonEur: 0,
               flags: [
@@ -2607,6 +2669,42 @@
                           class="mt-1 w-full rounded-xl border border-champagne-line bg-white px-3 py-1.5 text-sm font-semibold text-obsidian tabular-nums focus:border-champagne focus:outline-none"
                         />
                       </label>
+                      <label class="block">
+                        <span class="block text-[11px] font-medium text-stone" x-text="t('minSpendEditLabel')"></span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="100"
+                          x-model.number="venue.minimumSpendEur"
+                          class="mt-1 w-full rounded-xl border border-champagne-line bg-white px-3 py-1.5 text-sm font-semibold text-obsidian tabular-nums focus:border-champagne focus:outline-none"
+                        />
+                      </label>
+                      <label class="block">
+                        <span class="block text-[11px] font-medium text-stone" x-text="t('validEditLabel')"></span>
+                        <input
+                          type="date"
+                          x-model="venue.validUntil"
+                          class="mt-1 w-full rounded-xl border border-champagne-line bg-white px-3 py-1.5 text-sm font-semibold text-obsidian focus:border-champagne focus:outline-none"
+                        />
+                      </label>
+                      <label class="block sm:col-span-2">
+                        <span class="block text-[11px] font-medium text-stone" x-text="t('depositEditLabel')"></span>
+                        <input
+                          type="text"
+                          maxlength="160"
+                          x-model="venue.depositNote[lang]"
+                          class="mt-1 w-full rounded-xl border border-champagne-line bg-white px-3 py-1.5 text-sm text-obsidian focus:border-champagne focus:outline-none"
+                        />
+                      </label>
+                      <label class="block sm:col-span-2">
+                        <span class="block text-[11px] font-medium text-stone" x-text="t('cancelEditLabel')"></span>
+                        <input
+                          type="text"
+                          maxlength="160"
+                          x-model="venue.cancellationNote[lang]"
+                          class="mt-1 w-full rounded-xl border border-champagne-line bg-white px-3 py-1.5 text-sm text-obsidian focus:border-champagne focus:outline-none"
+                        />
+                      </label>
                     </div>
 
                     <!-- Base Metrics Breakdown -->
@@ -2693,6 +2791,42 @@
                           <strong class="font-semibold text-obsidian" x-text="formatCurrency(calculateBreakdown(venue).effectivePerGuestEur)"></strong>
                         </span>
                       </div>
+                    </div>
+
+                    <!-- Quote Terms: minimum spend, deposit, cancellation, validity -->
+                    <div class="mt-6">
+                      <h4 class="text-xs font-semibold tracking-wider uppercase text-obsidian" x-text="t('termsTitle')"></h4>
+                      <dl class="mt-3 divide-y divide-champagne-soft rounded-2xl border border-champagne-soft text-sm">
+                        <div class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                          <dt class="text-stone" x-text="t('termsMinSpend')"></dt>
+                          <dd class="sm:text-right tabular-nums">
+                            <span x-show="venue.minimumSpendEur > 0" class="font-semibold text-obsidian" x-text="formatCurrency(venue.minimumSpendEur)"></span>
+                            <span x-show="!(venue.minimumSpendEur > 0)" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                          </dd>
+                        </div>
+                        <div class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                          <dt class="text-stone" x-text="t('termsDeposit')"></dt>
+                          <dd class="sm:text-right">
+                            <span x-show="venue.depositNote[lang]" class="text-obsidian" x-text="venue.depositNote[lang]"></span>
+                            <span x-show="!venue.depositNote[lang]" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                          </dd>
+                        </div>
+                        <div class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                          <dt class="text-stone" x-text="t('termsCancel')"></dt>
+                          <dd class="sm:text-right">
+                            <span x-show="venue.cancellationNote[lang]" class="text-obsidian" x-text="venue.cancellationNote[lang]"></span>
+                            <span x-show="!venue.cancellationNote[lang]" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                          </dd>
+                        </div>
+                        <div class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                          <dt class="text-stone" x-text="t('termsValid')"></dt>
+                          <dd class="sm:text-right tabular-nums">
+                            <span x-show="venue.validUntil" :class="validityClass(venue.validUntil)" x-text="validityText(venue.validUntil)"></span>
+                            <span x-show="!venue.validUntil" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                          </dd>
+                        </div>
+                      </dl>
+                      <p x-show="isBelowMinimum(venue)" class="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800" x-text="'⚠ ' + t('termsBelowMinimum')"></p>
                     </div>
 
                     <!-- Aligned Fixed-Order Cost Categories across Venue Cards -->
@@ -2981,6 +3115,43 @@
                     <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('rowFood')"></th>
                     <template x-for="col in comparison().columns" :key="col.id">
                       <td class="border-b border-l border-champagne-soft px-3 py-3 text-obsidian" x-text="formatCurrency(col.foodEur)"></td>
+                    </template>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('termsMinSpend')"></th>
+                    <template x-for="col in comparison().columns" :key="col.id">
+                      <td class="border-b border-l border-champagne-soft px-3 py-3 align-top">
+                        <span x-show="col.minimumSpendEur > 0" class="font-medium text-obsidian" x-text="formatCurrency(col.minimumSpendEur)"></span>
+                        <span x-show="!(col.minimumSpendEur > 0)" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                        <div x-show="col.belowMinimum" class="mt-1 text-[11px] font-medium text-amber-800" x-text="'⚠ ' + t('termsBelowMinimum')"></div>
+                      </td>
+                    </template>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('termsDeposit')"></th>
+                    <template x-for="col in comparison().columns" :key="col.id">
+                      <td class="border-b border-l border-champagne-soft px-3 py-3 align-top text-obsidian">
+                        <span x-show="col.depositNote[lang]" x-text="col.depositNote[lang]"></span>
+                        <span x-show="!col.depositNote[lang]" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                      </td>
+                    </template>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('termsCancel')"></th>
+                    <template x-for="col in comparison().columns" :key="col.id">
+                      <td class="border-b border-l border-champagne-soft px-3 py-3 align-top text-obsidian">
+                        <span x-show="col.cancellationNote[lang]" x-text="col.cancellationNote[lang]"></span>
+                        <span x-show="!col.cancellationNote[lang]" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                      </td>
+                    </template>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('termsValid')"></th>
+                    <template x-for="col in comparison().columns" :key="col.id">
+                      <td class="border-b border-l border-champagne-soft px-3 py-3 align-top">
+                        <span x-show="col.validUntil" :class="validityClass(col.validUntil)" x-text="validityText(col.validUntil)"></span>
+                        <span x-show="!col.validUntil" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                      </td>
                     </template>
                   </tr>
                   <template x-for="cat in comparison().categories" :key="cat">

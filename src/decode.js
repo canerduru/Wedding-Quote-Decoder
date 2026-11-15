@@ -79,6 +79,34 @@ const RESPONSE_SCHEMA = {
       description:
         "For venues: per-guest food & beverage price in the document's ORIGINAL currency (no conversion). For vendor_addon: any per-guest service cost in the original currency (e.g., external catering per-guest menu cost; 0 if purely fixed fee).",
     },
+    minimumSpend: {
+      type: 'NUMBER',
+      description:
+        "Minimum spend / minimum guarantee / minimum package the venue requires, in the document's ORIGINAL currency (no conversion). 0 if the document does not state one. NEVER invent a number.",
+    },
+    depositNote: {
+      type: 'OBJECT',
+      description: "Deposit and payment schedule stated in the document (e.g. '30% deposit at booking, balance 14 days before')",
+      properties: {
+        tr: { type: 'STRING', description: 'Turkish summary, at most 15 words; empty string if the document does not say.' },
+        en: { type: 'STRING', description: 'English summary, at most 15 words; empty string if the document does not say.' },
+      },
+      required: ['tr', 'en'],
+    },
+    cancellationNote: {
+      type: 'OBJECT',
+      description: "Cancellation, date-change or guest-count reduction terms stated in the document",
+      properties: {
+        tr: { type: 'STRING', description: 'Turkish summary, at most 15 words; empty string if the document does not say.' },
+        en: { type: 'STRING', description: 'English summary, at most 15 words; empty string if the document does not say.' },
+      },
+      required: ['tr', 'en'],
+    },
+    validUntil: {
+      type: 'STRING',
+      description:
+        "Date until which the quote or its price is valid as YYYY-MM-DD, or an empty string if not stated. If only day and month are given, use the year of the document date when visible; otherwise return an empty string.",
+    },
     flags: {
       type: 'ARRAY',
       description:
@@ -142,6 +170,10 @@ const RESPONSE_SCHEMA = {
     'currency',
     'baseFee',
     'fbPerPerson',
+    'minimumSpend',
+    'depositNote',
+    'cancellationNote',
+    'validUntil',
     'flags',
   ],
 };
@@ -167,7 +199,13 @@ Rules:
    - For 'venue': put fixed venue rental in baseFee, per-guest menu price in fbPerPerson. Put hidden costs, excluded VAT/KDV/IVA (category="tax", calcType="vat_pct"), service fees, SIAE/music (category="music"), external catering requirements (category="catering"), etc. in flags[].
    - IMPORTANT TAX RULE: If a venue quote explicitly states that VAT/KDV/IVA or taxes ARE INCLUDED (e.g., "KDV dahil", "VAT included", "IVA inclusa"), ALWAYS include a flag with category="tax", type="safe", calcType="fixed", amount=0, active=false (e.g., label.tr="KDV / Vergi Dahil", label.en="VAT / Taxes Included") so it aligns side-by-side with quotes where tax is excluded!
    - For 'vendor_addon': put fixed service total in baseFee and any per-guest service cost in fbPerPerson. ALSO populate flags[] with the main service package line item (category matching vendorCategory, type="risk", active=true, calcType="fixed" or "per_guest", exact amount in the original currency) plus any separate setup/delivery fees and any excluded VAT/KDV/IVA (category="tax", type="risk", calcType="vat_pct", active=true) so it can be cleanly injected into a venue card as itemized rows. Do NOT double-count the same service fee across multiple flags.
-5. Return clean, natural Turkish AND English labels and explanations.`;
+5. Quote terms (venue and vendor quotes):
+   - minimumSpend: the minimum spend / minimum guarantee / minimum package, in the ORIGINAL currency; 0 if the document does not state one.
+   - depositNote, cancellationNote: short summaries (at most 15 words) of what the document says about deposit / payment schedule and cancellation / date-change terms; empty strings if it says nothing.
+   - validUntil: the date the quote stays valid as YYYY-MM-DD, or '' if not stated.
+   - Small recurring charges (overtime, corkage, cake cutting, cleaning, extra hours) are hidden costs: put each as its own flag.
+   - NEVER invent terms. Missing information must stay 0 or empty so the app can show it as not stated.
+6. Return clean, natural Turkish AND English labels and explanations.`;
 
 export class DecodeError extends Error {
   constructor(code, message) {

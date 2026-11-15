@@ -54,3 +54,18 @@ test('kolon kimligi ve bos liste', () => {
   assert.deepEqual(build([venue('A', 1, 0)]).columns.map((c) => c.id), ['A']);
   assert.deepEqual(build([]).columns, []);
 });
+
+test('minimum harcama ve gecerlilik alanlari tabloya tasinir, toplam altindaysa uyarilir', () => {
+  const a = { ...venue('A', 1000, 0), minimumSpendEur: 5000, depositNote: { tr: '%30', en: '30%' }, cancellationNote: { tr: '', en: '' }, validUntil: '2026-11-20' };
+  const b = { ...venue('B', 9000, 0), minimumSpendEur: 5000 };
+  const c = venue('C', 2000, 0);
+  const { columns } = build([a, b, c]);
+  assert.equal(columns[0].minimumSpendEur, 5000);
+  assert.equal(columns[0].belowMinimum, true);
+  assert.equal(columns[1].belowMinimum, false);
+  assert.equal(columns[2].minimumSpendEur, 0);
+  assert.equal(columns[2].belowMinimum, false);
+  assert.equal(columns[0].depositNote.tr, '%30');
+  assert.equal(columns[0].validUntil, '2026-11-20');
+  assert.equal(columns[2].validUntil, '');
+});
