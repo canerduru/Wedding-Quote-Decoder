@@ -163,6 +163,7 @@
       import * as paste from '/src/paste.js';
       import * as summary from '/src/summary.js';
       import * as pasted from '/src/pasted.js';
+      import * as matrix from '/src/matrix.js';
 
       window.__CALC__ = calc;
       window.__PERSIST__ = persist;
@@ -181,6 +182,7 @@
       window.__PASTE__ = paste;
       window.__SUMMARY__ = summary;
       window.__PASTED__ = pasted;
+      window.__MATRIX__ = matrix;
 
       window.Alpine = Alpine;
       Alpine.start();
@@ -253,6 +255,22 @@
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
           categoriesNotStated: 'Bu teklifte belirtilmeyenler (eklemek için dokunun):',
+          matrixLegend: '— teklifte yazmıyor · ✓ dahil · ● fiyat yok · yeşil zemin: en düşük. Uzun metinler için "daha fazla"ya dokunun ya da üzerine gelin.',
+          matrixMore: 'daha fazla',
+          matrixLess: 'daha az',
+          gapRent: 'mekan kirası yok',
+          gapFood: 'yemek & içecek yok',
+          gapNeedsPrice: 'kalemin fiyatı yok',
+          gapMismatch: 'toplam, teklifteki toplamla uyuşmuyor',
+          gapWord: 'eksik',
+          noPriceShort: 'fiyat yok',
+          bestValueBadgeShort: 'En düşük',
+          tableEditShort: 'Düzenle',
+          extrasSummaryItems: 'kalem',
+          extrasSummaryIncluded: 'dahil',
+          sectionExtras: 'Ek hizmetler & gizli maliyetler',
+          moreMenuLabel: 'Diğer işlemler',
+          termsMissingPrefix: 'Teklifte yazmıyor',
           btnPasteText: 'Metin Yapıştır',
           textPanelTitle: 'Teklif metnini buraya yapıştırın (e-posta, WhatsApp mesajı…)',
           textPanelPlaceholder: 'Örn: Villa Flori, kira 3.000 € KDV dahil, ceremony 1 saat…',
@@ -493,6 +511,22 @@
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
           categoriesNotStated: 'Not stated in this quote (tap to add):',
+          matrixLegend: '— not in the quote · ✓ included · ● no price · green: lowest. Tap "more" or hover to read long text.',
+          matrixMore: 'more',
+          matrixLess: 'less',
+          gapRent: 'venue rental missing',
+          gapFood: 'food & drink missing',
+          gapNeedsPrice: 'item(s) without a price',
+          gapMismatch: 'total does not match the total in the quote',
+          gapWord: 'missing',
+          noPriceShort: 'no price',
+          bestValueBadgeShort: 'Lowest',
+          tableEditShort: 'Edit',
+          extrasSummaryItems: 'items',
+          extrasSummaryIncluded: 'included',
+          sectionExtras: 'Add-ons & hidden costs',
+          moreMenuLabel: 'More actions',
+          termsMissingPrefix: 'Not in the quote',
           btnPasteText: 'Paste Text',
           textPanelTitle: 'Paste the quote text here (email, WhatsApp message…)',
           textPanelPlaceholder: 'e.g. Villa Flori, rental €3,000 VAT included, ceremony 1 hour…',
@@ -761,6 +795,10 @@
           pastedText: '',
           pastedName: '',
           textCounter: 0,
+          moreMenuOpen: false,
+          collapsedGroups: {},
+          expandedCells: {},
+          openSections: {},
           undoTimer: null,
           isDragging: false,
           dragOverVenueId: null,
@@ -807,6 +845,14 @@
             }
             this.viewMode = window.__VIEW__.loadViewMode(window.localStorage);
             this.density = window.__VIEW__.loadDensity(window.localStorage);
+            if (this.venues.length > 0) {
+              setTimeout(() => document.getElementById('comparison-section')?.scrollIntoView({ block: 'start' }), 500);
+            }
+
+            const dock = document.getElementById('equalizer-bar');
+            if (dock && 'ResizeObserver' in window) {
+              new ResizeObserver(() => document.documentElement.style.setProperty('--dock-h', `${dock.offsetHeight}px`)).observe(dock);
+            }
 
             let saveTimer = null;
             this.$watch(
@@ -908,6 +954,62 @@
             this.$nextTick(() => {
               document.getElementById(`venue-card-${venueId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
+          },
+
+          get matrix() {
+            const categories = this.getActiveComparisonCategories();
+            const { columns } = window.__TABLE__.buildComparison({
+              venues: this.venues,
+              guestCount: this.guestCount,
+              categories,
+              categoryOf: (flag) => this.resolveFlagCategory(flag),
+            });
+            return window.__MATRIX__.buildMatrix({
+              columns,
+              categories,
+              lang: this.lang,
+              money: (eur) => this.formatCurrency(eur),
+              t: (key) => this.t(key),
+              categoryTitle: (cat) => this.getCategoryFullTitle(cat),
+              validityText: (date) => this.validityText(date),
+              venues: this.venues,
+              guestCount: this.guestCount,
+            });
+          },
+
+          matrixStyle() {
+            return { tableLayout: 'fixed', width: '100%', minWidth: `calc(9.5rem + ${Math.max(1, this.venues.length)} * 12.5rem)` };
+          },
+
+          toggleGroup(key) {
+            this.collapsedGroups = { ...this.collapsedGroups, [key]: !this.collapsedGroups[key] };
+          },
+
+          isExpanded(rowKey, colId) {
+            return Boolean(this.expandedCells[`${rowKey}|${colId}`]);
+          },
+
+          toggleExpand(rowKey, colId) {
+            const key = `${rowKey}|${colId}`;
+            this.expandedCells = { ...this.expandedCells, [key]: !this.expandedCells[key] };
+          },
+
+          sectionOpen(venue, key) {
+            return this.openSections[`${venue.id}:${key}`] ?? key !== 'extras';
+          },
+
+          toggleSection(venue, key) {
+            this.openSections = { ...this.openSections, [`${venue.id}:${key}`]: !this.sectionOpen(venue, key) };
+          },
+
+          extrasSummary(venue) {
+            const flags = venue.flags || [];
+            const included = flags.filter((f) => f.type === 'safe').length;
+            const gaps = window.__COMPLETE__.completeness(venue).needsPriceCount;
+            const parts = [`${flags.length} ${this.t('extrasSummaryItems')}`];
+            if (included) parts.push(`${included} ${this.t('extrasSummaryIncluded')}`);
+            if (gaps) parts.push(`${gaps} ${this.t('noPriceShort')}`);
+            return parts.join(' · ');
           },
 
           showTable() {
@@ -2264,8 +2366,8 @@
 
     <main>
       <!-- 1. Hero Section & Floating Glass Atelier Dropzone -->
-      <section id="upload-hero" class="mx-auto max-w-7xl px-5 pt-8 pb-9 sm:px-8 sm:pt-12 sm:pb-11">
-        <div class="mb-5 flex items-center justify-between gap-4">
+      <section id="upload-hero" class="mx-auto max-w-7xl px-5 sm:px-8" :class="venues.length ? 'pt-4 pb-4 sm:pt-5 sm:pb-5' : 'pt-8 pb-9 sm:pt-12 sm:pb-11'">
+        <div x-show="venues.length === 0" class="mb-5 flex items-center justify-between gap-4">
           <p class="text-xs font-medium tracking-[0.18em] uppercase text-stone" x-text="t('heroKicker')"></p>
 
           <div
@@ -2292,7 +2394,7 @@
           </div>
         </div>
 
-        <div class="mx-auto max-w-3xl text-center">
+        <div x-show="venues.length === 0" class="mx-auto max-w-3xl text-center">
           <h1
             class="font-serif text-4xl font-medium tracking-tight text-obsidian text-balance sm:text-5xl lg:text-[3.35rem] lg:leading-[1.06]"
             x-text="t('heroTitle')"
@@ -2306,7 +2408,8 @@
         <!-- Gemini API key (BYOK) -->
         <div
           id="api-key-box"
-          class="mx-auto mt-8 max-w-5xl rounded-2xl border border-champagne-line bg-white/85 p-5 backdrop-blur-xl sm:p-6"
+          class="mx-auto max-w-5xl rounded-2xl border border-champagne-line bg-white/85 p-5 backdrop-blur-xl sm:p-6"
+          :class="venues.length ? 'mt-3' : 'mt-8'"
         >
           <div x-show="geminiKey && !editingKey" class="flex flex-wrap items-center justify-between gap-3">
             <p class="text-sm text-obsidian">
@@ -2342,8 +2445,8 @@
 
         <!-- Floating Glass Atelier Card Dropzone -->
         <div
-          class="relative mx-auto mt-8 max-w-5xl rounded-[28px] border bg-white/85 p-7 backdrop-blur-xl transition-all duration-200 sm:p-11"
-          :class="isDragging ? 'border-champagne ring-2 ring-champagne/40 shadow-glow scale-[1.005]' : 'border-champagne-line shadow-atelier hover:border-champagne/70 hover:shadow-glow'"
+          class="relative mx-auto max-w-5xl rounded-[28px] border bg-white/85 backdrop-blur-xl transition-all duration-200"
+          :class="[venues.length ? 'mt-3 p-4 sm:p-5' : 'mt-8 p-7 sm:p-11', isDragging ? 'border-champagne ring-2 ring-champagne/40 shadow-glow scale-[1.005]' : 'border-champagne-line shadow-atelier hover:border-champagne/70 hover:shadow-glow']"
           @dragover.prevent="isDragging = true"
           @dragleave.prevent="isDragging = false"
           @drop.prevent="handleDrop($event)"
@@ -2360,20 +2463,21 @@
           <!-- Idle / Ready Dropzone State -->
           <div x-show="!isScanning" class="flex flex-col items-center text-center">
             <!-- Curated Dual-Icon Emblem inside Blush-Gold Pill -->
-            <div class="inline-flex items-center gap-2 rounded-full border border-champagne-line bg-gradient-to-br from-blush to-[#F3E8E2] px-4 py-2.5 text-obsidian shadow-sm">
+            <div x-show="venues.length === 0" class="inline-flex items-center gap-2 rounded-full border border-champagne-line bg-gradient-to-br from-blush to-[#F3E8E2] px-4 py-2.5 text-obsidian shadow-sm">
               <i data-lucide="sparkles" class="h-4 w-4 text-champagne"></i>
               <span class="h-3.5 w-px bg-champagne-line" aria-hidden="true"></span>
               <i data-lucide="image" class="h-4 w-4 text-obsidian"></i>
             </div>
 
             <p
+              x-show="venues.length === 0"
               class="mt-5 max-w-2xl font-serif text-xl font-medium leading-snug text-obsidian sm:text-[1.65rem] text-balance"
               x-text="t('dropzoneCopy')"
             ></p>
 
-            <p class="mt-2.5 text-xs text-stone" x-text="t('dropzoneFormats')"></p>
+            <p class="text-xs text-stone" :class="venues.length ? 'mb-0' : 'mt-2.5'" x-text="t('dropzoneFormats')"></p>
 
-            <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <div class="flex flex-wrap items-center justify-center gap-3" :class="venues.length ? 'mt-3' : 'mt-7'">
               <label
                 for="quoteFileInput"
                 class="inline-flex cursor-pointer items-center gap-2.5 rounded-full bg-obsidian px-6 py-3 text-sm font-medium text-pearl shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-obsidian/92 hover:shadow-lg whitespace-nowrap shrink-0"
@@ -2400,30 +2504,33 @@
                 <span x-text="t('btnPasteText')"></span>
               </button>
 
-              <button
-                type="button"
-                x-show="venues.length > 0 || pendingVendorAddons.length > 0"
-                @click="resetDashboard()"
-                class="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-medium text-stone transition-colors hover:bg-peony-bg hover:text-peony whitespace-nowrap shrink-0"
-              >
-                <span x-text="t('btnReset')"></span>
-              </button>
-
-              <button
-                type="button"
-                x-show="venues.length > 0"
-                @click="exportBackup()"
-                class="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-medium text-stone transition-colors hover:bg-champagne-soft hover:text-obsidian whitespace-nowrap shrink-0"
-              >
-                <span x-text="t('btnBackupExport')"></span>
-              </button>
-
+              <!-- Empty state: restore a backup -->
               <label
+                x-show="venues.length === 0"
+                for="backupImportInput"
                 class="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-medium text-stone transition-colors hover:bg-champagne-soft hover:text-obsidian whitespace-nowrap shrink-0"
               >
                 <span x-text="t('btnBackupImport')"></span>
-                <input type="file" accept="application/json,.json" class="sr-only" @change="importBackup($event)" />
               </label>
+              <input id="backupImportInput" type="file" accept="application/json,.json" class="sr-only" @change="importBackup($event)" />
+
+              <!-- Overflow menu: backup and clear -->
+              <div x-show="venues.length > 0" x-cloak class="relative" @click.outside="moreMenuOpen = false" @keydown.escape.window="moreMenuOpen = false">
+                <button
+                  type="button"
+                  @click="moreMenuOpen = !moreMenuOpen"
+                  :aria-expanded="moreMenuOpen"
+                  :aria-label="t('moreMenuLabel')"
+                  class="inline-flex items-center rounded-full border border-champagne-line bg-white/75 px-3.5 py-3 text-sm font-semibold text-obsidian transition-colors hover:border-champagne hover:bg-white"
+                >
+                  ⋯
+                </button>
+                <div x-show="moreMenuOpen" x-cloak class="absolute right-0 z-40 mt-2 w-48 rounded-2xl border border-champagne-line bg-white p-1.5 text-left shadow-atelier">
+                  <button type="button" @click="exportBackup(); moreMenuOpen = false" class="block w-full rounded-xl px-3 py-2 text-left text-xs font-medium text-obsidian hover:bg-blush" x-text="t('btnBackupExport')"></button>
+                  <label for="backupImportInput" @click="moreMenuOpen = false" class="block w-full cursor-pointer rounded-xl px-3 py-2 text-left text-xs font-medium text-obsidian hover:bg-blush" x-text="t('btnBackupImport')"></label>
+                  <button type="button" @click="resetDashboard(); moreMenuOpen = false" class="block w-full rounded-xl px-3 py-2 text-left text-xs font-medium text-peony hover:bg-peony-bg" x-text="t('btnReset')"></button>
+                </div>
+              </div>
             </div>
             <p class="mt-3 text-[11px] text-stone" x-show="venues.length > 0" x-text="t('autosaveNote')"></p>
 
@@ -2743,7 +2850,7 @@
       </section>
 
       <!-- 3. User-Uploaded Venues Side-by-Side Comparison Workspace -->
-      <section id="comparison-section" class="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14">
+      <section id="comparison-section" class="mx-auto max-w-7xl scroll-mt-14 px-5 py-6 sm:px-8 sm:py-8">
         <!-- Empty State: 3 Editorial Glass Onboarding Cards + Live Sample CTA -->
         <div x-show="venues.length === 0">
           <div class="mx-auto max-w-2xl text-center">
@@ -2802,8 +2909,8 @@
         <div x-show="venues.length > 0" x-cloak>
           <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 class="font-serif text-3xl font-medium tracking-tight text-obsidian sm:text-4xl" x-text="t('comparisonTitle')"></h2>
-              <p class="mt-1 text-sm text-stone">
+              <h2 class="font-serif text-2xl font-medium tracking-tight text-obsidian sm:text-3xl" x-text="t('comparisonTitle')"></h2>
+              <p class="mt-0.5 text-xs text-stone">
                 <span x-show="lang === 'en'">For </span>
                 <span class="tabular-nums font-semibold text-obsidian" x-text="guestCount"></span>
                 <span x-text="t('comparisonSubtitleTail')"></span>
@@ -2851,13 +2958,7 @@
                   ></button>
                 </template>
               </div>
-              <p class="text-xs text-stone" x-text="t('comparisonHint')"></p>
-              <button
-                type="button"
-                @click="addBlankManualVenue()"
-                class="rounded-full border border-champagne-line bg-white px-4 py-2 text-xs font-medium text-obsidian transition-colors hover:border-champagne whitespace-nowrap shrink-0"
-                x-text="t('btnAddBlankVenue')"
-              ></button>
+              <p x-show="!showTable()" class="text-xs text-stone" x-text="t('comparisonHint')"></p>
             </div>
           </div>
 
@@ -2876,7 +2977,7 @@
               >
                 <div>
                   <!-- Atmospheric Visual Cover Banner (1. Verified Real Photo -> 2. Uploaded Quote Image -> 3. Curated Luxury Cover) -->
-                  <div class="relative h-44 w-full overflow-hidden bg-gradient-to-br from-[#F9F3F0] via-[#EFE6E0] to-[#E5D7CC]">
+                  <div class="relative h-36 w-full overflow-hidden bg-gradient-to-br from-[#F9F3F0] via-[#EFE6E0] to-[#E5D7CC]">
                     <img
                       x-show="!venue.coverError && getVenueCoverUrl(venue)"
                       :src="getVenueCoverUrl(venue)"
@@ -3143,7 +3244,7 @@
                         <dt class="text-stone" x-text="t('baseFeeLabel')"></dt>
                         <dd class="font-semibold text-obsidian tabular-nums">
                           <span x-show="!completeness(venue).rentMissing" x-text="formatCurrency(venue.baseFeeEur)"></span>
-                          <span x-show="completeness(venue).rentMissing" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                          <span x-show="completeness(venue).rentMissing" class="font-normal text-stone/50" :title="t('termsNotStated')">—</span>
                         </dd>
                       </div>
 
@@ -3154,7 +3255,7 @@
                         </dt>
                         <dd class="font-semibold text-obsidian tabular-nums">
                           <span x-show="!completeness(venue).foodMissing" x-text="formatCurrency(calculateBreakdown(venue).fbSubtotalEur)"></span>
-                          <span x-show="completeness(venue).foodMissing" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                          <span x-show="completeness(venue).foodMissing" class="font-normal text-stone/50" :title="t('termsNotStated')">—</span>
                         </dd>
                       </div>
 
@@ -3242,54 +3343,50 @@
 
                     <!-- Quote Terms: minimum spend, deposit, cancellation, validity -->
                     <div class="mt-6">
-                      <h4 class="text-xs font-semibold tracking-wider uppercase text-obsidian" x-text="t('termsTitle')"></h4>
-                      <dl class="mt-3 divide-y divide-champagne-soft rounded-2xl border border-champagne-soft text-sm">
+                      <button type="button" @click="toggleSection(venue, 'terms')" :aria-expanded="sectionOpen(venue, 'terms')" class="flex w-full items-center justify-between gap-2 text-left">
+                        <h4 class="text-xs font-semibold tracking-wider uppercase text-obsidian" x-text="t('termsTitle')"></h4>
+                        <span class="text-xs text-stone transition-transform duration-150" :class="sectionOpen(venue, 'terms') ? '' : '-rotate-90'">▾</span>
+                      </button>
+                      <dl x-show="sectionOpen(venue, 'terms') && summaryRows(venue).length > 0" class="mt-3 divide-y divide-champagne-soft rounded-2xl border border-champagne-soft text-sm">
                         <template x-for="row in topNotes" :key="row.key">
-                          <div class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                          <div x-show="venue[row.key][lang]" class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                             <dt class="text-stone" x-text="t(row.label)"></dt>
-                            <dd class="sm:text-right">
-                              <span x-show="venue[row.key][lang]" class="text-obsidian" x-text="venue[row.key][lang]"></span>
-                              <span x-show="!venue[row.key][lang]" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
-                            </dd>
+                            <dd class="sm:text-right text-obsidian" x-text="venue[row.key][lang]"></dd>
                           </div>
                         </template>
                         <div x-show="venue.statedTotalEur > 0" class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                           <dt class="text-stone" x-text="t('termsStatedTotal')"></dt>
                           <dd class="sm:text-right tabular-nums font-semibold text-obsidian" x-text="formatCurrency(venue.statedTotalEur)"></dd>
                         </div>
-                        <div class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                        <div x-show="venue.minimumSpendEur > 0" class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                           <dt class="text-stone" x-text="t('termsMinSpend')"></dt>
-                          <dd class="sm:text-right tabular-nums">
-                            <span x-show="venue.minimumSpendEur > 0" class="font-semibold text-obsidian" x-text="formatCurrency(venue.minimumSpendEur)"></span>
-                            <span x-show="!(venue.minimumSpendEur > 0)" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
-                          </dd>
+                          <dd class="sm:text-right tabular-nums font-semibold text-obsidian" x-text="formatCurrency(venue.minimumSpendEur)"></dd>
                         </div>
                         <template x-for="row in bottomNotes" :key="row.key">
-                          <div class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                          <div x-show="venue[row.key][lang]" class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                             <dt class="text-stone" x-text="t(row.label)"></dt>
-                            <dd class="sm:text-right">
-                              <span x-show="venue[row.key][lang]" class="text-obsidian" x-text="venue[row.key][lang]"></span>
-                              <span x-show="!venue[row.key][lang]" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
-                            </dd>
+                            <dd class="sm:text-right text-obsidian" x-text="venue[row.key][lang]"></dd>
                           </div>
                         </template>
-                        <div class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                        <div x-show="venue.validUntil" class="flex flex-col gap-1 px-4 py-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                           <dt class="text-stone" x-text="t('termsValid')"></dt>
-                          <dd class="sm:text-right tabular-nums">
-                            <span x-show="venue.validUntil" :class="validityClass(venue.validUntil)" x-text="validityText(venue.validUntil)"></span>
-                            <span x-show="!venue.validUntil" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
-                          </dd>
+                          <dd class="sm:text-right tabular-nums" :class="validityClass(venue.validUntil)" x-text="validityText(venue.validUntil)"></dd>
                         </div>
                       </dl>
-                      <p x-show="isBelowMinimum(venue)" class="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800" x-text="'⚠ ' + t('termsBelowMinimum')"></p>
+                                            <p x-show="sectionOpen(venue, 'terms') && summaryGaps(venue).asks.length > 0" class="mt-2 text-[11px] leading-relaxed text-stone/80" x-text="t('termsMissingPrefix') + ': ' + summaryGaps(venue).asks.join(', ')"></p>
+                      <p x-show="isBelowMinimum(venue) && sectionOpen(venue, 'terms')" class="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800" x-text="'⚠ ' + t('termsBelowMinimum')"></p>
                     </div>
 
                     <!-- Aligned Fixed-Order Cost Categories across Venue Cards -->
                     <div class="mt-6">
-                      <div class="flex items-center justify-between gap-2">
-                        <h4 class="text-xs font-semibold tracking-wider uppercase text-obsidian" x-text="t('aiFlagsTitle')"></h4>
-                        <span class="text-[11px] text-stone" x-text="t('aiFlagsHint')"></span>
-                      </div>
+                      <button type="button" @click="toggleSection(venue, 'extras')" :aria-expanded="sectionOpen(venue, 'extras')" class="flex w-full items-start justify-between gap-3 text-left">
+                        <span class="min-w-0">
+                          <span class="block text-xs font-semibold tracking-wider uppercase text-obsidian" x-text="t('sectionExtras')"></span>
+                          <span class="mt-0.5 block text-[11px] text-stone" x-text="extrasSummary(venue)"></span>
+                        </span>
+                        <span class="mt-0.5 text-xs text-stone transition-transform duration-150" :class="sectionOpen(venue, 'extras') ? '' : '-rotate-90'">▾</span>
+                      </button>
+                      <div x-show="sectionOpen(venue, 'extras')">
 
                       <p x-show="getActiveComparisonCategories().length === 0" class="mt-3 text-xs text-stone" x-text="t('noFlagsYet')"></p>
 
@@ -3347,7 +3444,7 @@
                                               x-text="flag.label[lang]"
                                             ></div>
 
-                                            <p x-show="flag.detail[lang]" class="mt-0.5 text-[11px] leading-relaxed text-stone" x-text="flag.detail[lang]"></p>
+                                            <p x-show="flag.detail[lang]" :title="flag.detail[lang]" class="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-stone" x-text="flag.detail[lang]"></p>
 
                                             <!-- Smart Override Note -->
                                             <p
@@ -3406,7 +3503,7 @@
                                       <div class="flex items-start justify-between gap-2">
                                         <div class="min-w-0">
                                           <div class="text-xs font-semibold leading-snug text-amber-900" x-text="stripPriceNote(flag.label[lang])"></div>
-                                          <p x-show="flag.detail[lang]" class="mt-0.5 text-[11px] leading-relaxed text-amber-900/80" x-text="flag.detail[lang]"></p>
+                                          <p x-show="flag.detail[lang]" :title="flag.detail[lang]" class="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-amber-900/80" x-text="flag.detail[lang]"></p>
                                         </div>
                                         <div class="flex items-center gap-1.5 shrink-0">
                                           <span class="rounded-full bg-white/85 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800 whitespace-nowrap" x-text="'? ' + t('flagNeedsPriceLabel')"></span>
@@ -3442,7 +3539,7 @@
                                         <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-champagne-soft text-[11px] font-bold text-stone">i</span>
                                         <div class="min-w-0">
                                           <div class="text-xs font-semibold leading-snug text-obsidian" x-text="flag.label[lang]"></div>
-                                          <p x-show="flag.detail[lang]" class="mt-0.5 text-[11px] leading-relaxed text-stone" x-text="flag.detail[lang]"></p>
+                                          <p x-show="flag.detail[lang]" :title="flag.detail[lang]" class="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-stone" x-text="flag.detail[lang]"></p>
                                         </div>
                                       </div>
                                       <div class="flex items-center gap-1.5 shrink-0">
@@ -3469,7 +3566,7 @@
                                         </span>
                                         <div class="min-w-0">
                                           <div class="text-xs font-semibold text-[#115E59]" x-text="flag.label[lang]"></div>
-                                          <p x-show="flag.detail[lang]" class="mt-0.5 text-[11px] leading-relaxed text-[#115E59]/80" x-text="flag.detail[lang]"></p>
+                                          <p x-show="flag.detail[lang]" :title="flag.detail[lang]" class="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-[#115E59]/80" x-text="flag.detail[lang]"></p>
                                         </div>
                                       </div>
                                       <div class="flex items-center gap-1.5 shrink-0">
@@ -3601,6 +3698,7 @@
                           </span>
                         </label>
                       </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -3608,138 +3706,80 @@
             </template>
           </div>
 
-          <!-- Side-by-side comparison table (mobile default) -->
-          <div x-show="showTable()" x-cloak class="mt-8">
-            <p class="mb-3 text-xs text-stone" x-text="t('tableHint')"></p>
-            <div class="overflow-x-auto rounded-2xl border border-champagne-soft bg-white shadow-card">
-              <table class="w-full min-w-max border-separate border-spacing-0 text-sm">
+          <!-- Comparison matrix: equal-width columns, sticky header and first column, long text expands on demand -->
+          <div x-show="showTable()" x-cloak class="mt-6">
+            <p class="mb-3 text-[11px] leading-relaxed text-stone" x-text="t('matrixLegend')"></p>
+            <div class="overflow-auto rounded-2xl border border-champagne-soft bg-white shadow-card" style="max-height: calc(100vh - var(--dock-h, 56px) - 1rem)">
+              <table class="border-separate border-spacing-0 text-sm" :style="matrixStyle()">
                 <caption class="sr-only" x-text="t('tableCaption')"></caption>
                 <thead>
                   <tr>
-                    <th scope="col" class="sticky left-0 z-10 w-28 min-w-[7rem] border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone sm:w-44 sm:min-w-[11rem]" x-text="t('tableItemHeader')"></th>
-                    <template x-for="col in comparison().columns" :key="col.id">
-                      <th scope="col" class="min-w-[9.5rem] border-b border-l border-champagne-soft px-3 py-3 text-left align-top" :class="col.best ? 'bg-emeraldSafe-bg' : 'bg-white'">
-                        <div class="font-serif text-lg font-semibold leading-tight text-obsidian" x-text="displayVenueName(col.venue)"></div>
-                        <div class="mt-0.5 text-[11px] font-normal text-stone" x-text="col.venue.region[lang]"></div>
-                        <div x-show="col.best" class="mt-1.5 text-[11px] font-semibold text-emeraldSafe" x-text="t('bestValueBadge')"></div>
-                        <button
-                          type="button"
-                          @click="openCard(col.id)"
-                          class="mt-2 rounded-full border border-champagne-line bg-white px-2.5 py-0.5 text-[11px] font-semibold text-obsidian transition-colors hover:border-champagne hover:bg-blush"
-                          x-text="t('tableEditInCard')"
-                        ></button>
+                    <th scope="col" class="sticky left-0 top-0 z-30 w-[9.5rem] min-w-[9.5rem] border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone" x-text="t('tableItemHeader')"></th>
+                    <template x-for="col in matrix.columns" :key="col.id">
+                      <th scope="col" class="sticky top-0 z-20 border-b border-l border-champagne-soft px-3 py-3 text-left align-top font-normal" :class="col.best ? 'bg-emeraldSafe-bg' : 'bg-white'">
+                        <div class="flex items-start gap-2.5">
+                          <img :src="getVenueCoverUrl(col.venue)" alt="" loading="lazy" class="h-10 w-10 shrink-0 rounded-lg object-cover" />
+                          <div class="min-w-0 flex-1">
+                            <div class="line-clamp-2 font-serif text-base font-semibold leading-tight text-obsidian" :title="displayVenueName(col.venue)" x-text="displayVenueName(col.venue)"></div>
+                            <div class="truncate text-[11px] text-stone" x-text="col.venue.region[lang]"></div>
+                          </div>
+                          <button type="button" @click="openCard(col.id)" :title="t('tableEditShort')" :aria-label="t('tableEditShort')" class="shrink-0 rounded-full border border-champagne-line bg-white px-2 py-0.5 text-[11px] font-semibold text-obsidian transition-colors hover:border-champagne hover:bg-blush">✎</button>
+                        </div>
+                        <div class="mt-2 flex items-baseline justify-between gap-2">
+                          <span class="font-serif text-2xl font-semibold tabular-nums text-obsidian" x-text="col.hasPrice ? formatCurrency(col.turnkeyEur) : '—'"></span>
+                          <span class="whitespace-nowrap text-[11px] tabular-nums text-stone" x-text="col.hasPrice ? formatCurrency(col.perGuestEur) + ' / ' + t('perGuestShort') : ''"></span>
+                        </div>
+                        <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <span x-show="col.best" class="rounded-full bg-emeraldSafe/10 px-2 py-0.5 text-[10px] font-semibold text-emeraldSafe" x-text="t('bestValueBadgeShort')"></span>
+                          <span x-show="col.gapCount > 0" :title="col.gapReasons.join(' · ')" class="cursor-help rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800" x-text="'⚠ ' + col.gapCount + ' ' + t('gapWord')"></span>
+                        </div>
                       </th>
                     </template>
                   </tr>
                 </thead>
-                <tbody class="tabular-nums">
-                  <tr>
-                    <th scope="colgroup" :colspan="comparison().columns.length + 1" class="border-b border-champagne-soft bg-blush/70 px-3 py-2 text-left">
-                      <div class="sticky left-0 w-fit text-[11px] font-semibold uppercase tracking-wider text-stone" x-text="t('tableGroupPrice')"></div>
-                    </th>
-                  </tr>
-                  <tr>
-                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-semibold text-obsidian" x-text="t('rowTotal')"></th>
-                    <template x-for="col in comparison().columns" :key="col.id">
-                      <td class="border-b border-l border-champagne-soft px-3 py-3 font-serif text-xl font-semibold text-obsidian" :class="col.best ? 'bg-emeraldSafe-bg' : ''" ><span x-text="col.hasPrice ? formatCurrency(col.turnkeyEur) : '—'"></span><div x-show="col.rentMissing || col.foodMissing || col.needsPriceCount > 0" class="mt-1 font-sans text-[11px] font-medium text-amber-800" x-text="'⚠ ' + t('tableIncomplete')"></div></td>
-                    </template>
-                  </tr>
-                  <tr>
-                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('rowPerGuest')"></th>
-                    <template x-for="col in comparison().columns" :key="col.id">
-                      <td class="border-b border-l border-champagne-soft px-3 py-3 text-stone" x-text="col.hasPrice ? formatCurrency(col.perGuestEur) : '—'"></td>
-                    </template>
-                  </tr>
-                  <tr>
-                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('rowDelta')"></th>
-                    <template x-for="col in comparison().columns" :key="col.id">
-                      <td class="border-b border-l border-champagne-soft px-3 py-3 text-stone" x-text="col.hasPrice && col.deltaEur > 0 ? '+' + formatCurrency(col.deltaEur) : '—'"></td>
-                    </template>
-                  </tr>
-                  <tr>
-                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('termsStatedTotal')"></th>
-                    <template x-for="col in comparison().columns" :key="col.id">
-                      <td class="border-b border-l border-champagne-soft px-3 py-3 text-stone" x-text="col.venue.statedTotalEur > 0 ? formatCurrency(col.venue.statedTotalEur) : '—'"></td>
-                    </template>
-                  </tr>
-                  <tr>
-                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('baseFeeLabel')"></th>
-                    <template x-for="col in comparison().columns" :key="col.id">
-                      <td class="border-b border-l border-champagne-soft px-3 py-3 text-obsidian"><span x-show="!col.rentMissing" x-text="formatCurrency(col.rentEur)"></span><span x-show="col.rentMissing" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span></td>
-                    </template>
-                  </tr>
-                  <tr>
-                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('rowFood')"></th>
-                    <template x-for="col in comparison().columns" :key="col.id">
-                      <td class="border-b border-l border-champagne-soft px-3 py-3 text-obsidian"><span x-show="!col.foodMissing" x-text="formatCurrency(col.foodEur)"></span><span x-show="col.foodMissing" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span></td>
-                    </template>
-                  </tr>
-                  <tr>
-                    <th scope="colgroup" :colspan="comparison().columns.length + 1" class="border-b border-champagne-soft bg-blush/70 px-3 py-2 text-left">
-                      <div class="sticky left-0 w-fit text-[11px] font-semibold uppercase tracking-wider text-stone" x-text="t('tableGroupTerms')"></div>
-                    </th>
-                  </tr>
-                  <template x-for="row in topNotes" :key="row.key">
+
+                <template x-for="group in matrix.groups" :key="group.key">
+                  <tbody>
                     <tr>
-                      <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t(row.label)"></th>
-                      <template x-for="col in comparison().columns" :key="col.id">
-                        <td class="border-b border-l border-champagne-soft px-3 py-3 align-top text-obsidian">
-                          <span x-show="col.venue[row.key][lang]" x-text="col.venue[row.key][lang]"></span>
-                          <span x-show="!col.venue[row.key][lang]" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
-                        </td>
-                      </template>
+                      <th scope="colgroup" :colspan="matrix.columns.length + 1" class="border-b border-champagne-soft bg-blush/70 px-3 py-1.5 text-left">
+                        <button type="button" @click="toggleGroup(group.key)" :aria-expanded="!collapsedGroups[group.key]" class="sticky left-3 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-stone hover:text-obsidian">
+                          <span class="inline-block transition-transform duration-150" :class="collapsedGroups[group.key] ? '-rotate-90' : ''">▾</span>
+                          <span x-text="group.label"></span>
+                        </button>
+                      </th>
                     </tr>
-                  </template>
-                  <tr>
-                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('termsMinSpend')"></th>
-                    <template x-for="col in comparison().columns" :key="col.id">
-                      <td class="border-b border-l border-champagne-soft px-3 py-3 align-top">
-                        <span x-show="col.minimumSpendEur > 0" class="font-medium text-obsidian" x-text="formatCurrency(col.minimumSpendEur)"></span>
-                        <span x-show="!(col.minimumSpendEur > 0)" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
-                        <div x-show="col.belowMinimum" class="mt-1 text-[11px] font-medium text-amber-800" x-text="'⚠ ' + t('termsBelowMinimum')"></div>
-                      </td>
+                    <template x-for="row in group.rows" :key="group.key + '-' + row.key">
+                      <tr x-show="!collapsedGroups[group.key]">
+                        <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-2.5 text-left text-xs font-medium text-stone" x-text="row.label"></th>
+                        <template x-for="cell in row.cells" :key="row.key + '-' + cell.colId">
+                          <td class="border-b border-l border-champagne-soft px-3 py-2.5 align-top text-[13px]" :class="cell.best ? 'bg-emeraldSafe-bg' : (cell.colBest ? 'bg-emeraldSafe-bg/40' : '')">
+                            <template x-if="cell.kind === 'missing' || cell.kind === 'dash'">
+                              <span class="text-stone/40" :title="cell.kind === 'missing' ? t('termsNotStated') : ''">—</span>
+                            </template>
+                            <template x-if="cell.kind === 'amount'">
+                              <span class="font-medium tabular-nums" :class="cell.warn ? 'text-amber-800' : 'text-obsidian'" :title="cell.warn ? t('termsBelowMinimum') : ''" x-text="(cell.warn ? '⚠ ' : '') + cell.text"></span>
+                            </template>
+                            <template x-if="cell.kind === 'included'">
+                              <span class="font-medium text-emeraldSafe" x-text="'✓ ' + cell.text"></span>
+                            </template>
+                            <template x-if="cell.kind === 'excluded'">
+                              <span class="text-stone" x-text="cell.text"></span>
+                            </template>
+                            <template x-if="cell.kind === 'needs_price'">
+                              <span class="text-[12px] font-medium text-amber-700" x-text="'● ' + cell.text"></span>
+                            </template>
+                            <template x-if="cell.kind === 'text'">
+                              <div>
+                                <p class="leading-snug" :class="[cell.long && !isExpanded(row.key, cell.colId) ? 'line-clamp-2' : '', cell.expired ? 'font-semibold text-peony' : 'text-obsidian']" :title="cell.long ? cell.text : ''" x-text="cell.text"></p>
+                                <button type="button" x-show="cell.long" @click="toggleExpand(row.key, cell.colId)" class="mt-0.5 text-[11px] font-medium text-champagne hover:text-obsidian" x-text="isExpanded(row.key, cell.colId) ? t('matrixLess') : t('matrixMore')"></button>
+                              </div>
+                            </template>
+                          </td>
+                        </template>
+                      </tr>
                     </template>
-                  </tr>
-                  <template x-for="row in bottomNotes" :key="row.key">
-                    <tr>
-                      <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t(row.label)"></th>
-                      <template x-for="col in comparison().columns" :key="col.id">
-                        <td class="border-b border-l border-champagne-soft px-3 py-3 align-top text-obsidian">
-                          <span x-show="col.venue[row.key][lang]" x-text="col.venue[row.key][lang]"></span>
-                          <span x-show="!col.venue[row.key][lang]" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
-                        </td>
-                      </template>
-                    </tr>
-                  </template>
-                  <tr>
-                    <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('termsValid')"></th>
-                    <template x-for="col in comparison().columns" :key="col.id">
-                      <td class="border-b border-l border-champagne-soft px-3 py-3 align-top">
-                        <span x-show="col.validUntil" :class="validityClass(col.validUntil)" x-text="validityText(col.validUntil)"></span>
-                        <span x-show="!col.validUntil" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
-                      </td>
-                    </template>
-                  </tr>
-                  <tr x-show="comparison().categories.length > 0">
-                    <th scope="colgroup" :colspan="comparison().columns.length + 1" class="border-b border-champagne-soft bg-blush/70 px-3 py-2 text-left">
-                      <div class="sticky left-0 w-fit text-[11px] font-semibold uppercase tracking-wider text-stone" x-text="t('tableGroupExtras')"></div>
-                    </th>
-                  </tr>
-                  <template x-for="cat in comparison().categories" :key="cat">
-                    <tr>
-                      <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="getCategoryFullTitle(cat)"></th>
-                      <template x-for="col in comparison().columns" :key="col.id">
-                        <td class="border-b border-l border-champagne-soft px-3 py-3">
-                          <span x-show="col.cells[cat].kind === 'amount'" class="font-medium text-peony" x-text="'+' + formatCurrency(col.cells[cat].amountEur)"></span>
-                          <span x-show="col.cells[cat].kind === 'included'" class="font-medium text-emeraldSafe" x-text="'✓ ' + t('includedLabel')"></span>
-                          <span x-show="col.cells[cat].kind === 'excluded'" class="text-stone" x-text="t('excludedLabel')"></span>
-                          <span x-show="col.cells[cat].kind === 'needs_price'" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('flagNeedsPriceLabel')"></span>
-                          <span x-show="col.cells[cat].kind === 'missing'" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('cellMissing')"></span>
-                        </td>
-                      </template>
-                    </tr>
-                  </template>
-                </tbody>
+                  </tbody>
+                </template>
               </table>
             </div>
           </div>
