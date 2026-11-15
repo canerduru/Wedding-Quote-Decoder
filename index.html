@@ -159,6 +159,9 @@
       import * as flagedit from '/src/flagedit.js';
       import * as view from '/src/viewmode.js';
       import * as merge from '/src/merge.js';
+      import * as undo from '/src/undo.js';
+      import * as paste from '/src/paste.js';
+      import * as summary from '/src/summary.js';
 
       window.__CALC__ = calc;
       window.__PERSIST__ = persist;
@@ -173,6 +176,9 @@
       window.__FLAGEDIT__ = flagedit;
       window.__VIEW__ = view;
       window.__MERGE__ = merge;
+      window.__UNDO__ = undo;
+      window.__PASTE__ = paste;
+      window.__SUMMARY__ = summary;
 
       window.Alpine = Alpine;
       Alpine.start();
@@ -240,11 +246,17 @@
           dropzoneCopy:
             'WhatsApp Ekran Görüntülerini (JPEG/PNG) veya Mekan PDF’lerini Buraya Bırakın. Excel eziyeti bitsin, yapay zeka saniyeler içinde karşılaştırsın.',
           dropzoneFormats:
-            'Çoklu dosya seçimi desteklenir · PNG, JPEG, WEBP, PDF · Maks. 14 MB',
+            'Çoklu dosya seçimi desteklenir · PNG, JPEG, WEBP, PDF · Maks. 14 MB · Ekran görüntüsünü Ctrl/Cmd+V ile de yapıştırabilirsiniz',
           btnChooseFile: 'Çoklu Dosya Seç veya Sürükle',
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
           categoriesNotStated: 'Bu teklifte belirtilmeyenler (eklemek için dokunun):',
+          undoVenueRemoved: 'Kart silindi.',
+          undoAllCleared: 'Tüm kartlar temizlendi.',
+          undoBtn: 'Geri al',
+          toastRestored: 'Geri alındı.',
+          summaryMissingTitle: 'Eksik',
+          summaryAskTitle: 'Teklifte yazmayanlar (mekana sorulacak)',
           toastMergedInto: 'Belge şu karta eklendi:',
           toastMergeConflicts: 'farklı değer bulundu; kartı kontrol edin.',
           venueSimilarKicker: 'Benzer isimli mekan',
@@ -463,11 +475,17 @@
           dropzoneCopy:
             'Drop WhatsApp Screenshots (JPEG/PNG) or Venue PDFs Here. End spreadsheet fatigue—decode hidden costs in seconds.',
           dropzoneFormats:
-            'Multi-file selection supported · PNG, JPEG, WEBP, PDF · Max 14 MB',
+            'Multi-file selection supported · PNG, JPEG, WEBP, PDF · Max 14 MB · You can also paste a screenshot with Ctrl/Cmd+V',
           btnChooseFile: 'Select or Drop Multiple Files',
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
           categoriesNotStated: 'Not stated in this quote (tap to add):',
+          undoVenueRemoved: 'Card removed.',
+          undoAllCleared: 'All cards cleared.',
+          undoBtn: 'Undo',
+          toastRestored: 'Restored.',
+          summaryMissingTitle: 'Missing',
+          summaryAskTitle: 'Not stated in the quote (ask the venue)',
           toastMergedInto: 'Document added to card:',
           toastMergeConflicts: 'different value(s) found; please check the card.',
           venueSimilarKicker: 'Similar venue name',
@@ -714,6 +732,8 @@
           venues: [],
           pendingVendorAddons: [],
           pendingVenueDocs: [],
+          undoBar: { visible: false, text: '', action: null },
+          undoTimer: null,
           isDragging: false,
           dragOverVenueId: null,
           isScanning: false,
@@ -824,15 +844,7 @@
           },
 
           validityText(validUntil) {
-            const status = window.__TERMS__.validityStatus(validUntil);
-            if (status.state === 'none') return '';
-            const date = new Date(`${validUntil}T00:00:00`).toLocaleDateString(this.lang === 'tr' ? 'tr-TR' : 'en-GB', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            });
-            if (status.state === 'expired') return `${date} · ${this.t('validExpired')}`;
-            return status.days === 0 ? `${date} · ${this.t('validToday')}` : `${date} · ${status.days} ${this.t('validDaysLeft')}`;
+            return window.__TERMS__.formatValidity(validUntil, this.lang);
           },
 
           validityClass(validUntil) {
@@ -1189,14 +1201,7 @@
           },
 
           formatCurrency(eurAmount) {
-            const safeAmount = Number.isFinite(Number(eurAmount)) ? Number(eurAmount) : 0;
-            const val = this.currency === 'EUR' ? safeAmount : safeAmount * this.exchangeRate;
-            const rounded = Math.round(val);
-            const locale = this.lang === 'tr' ? 'tr-TR' : 'en-US';
-            if (this.currency === 'EUR') {
-              return '€' + rounded.toLocaleString(locale);
-            }
-            return '₺' + rounded.toLocaleString(locale);
+            return window.__SUMMARY__.formatMoney(eurAmount, this.currency, this.exchangeRate, this.lang);
           },
 
           getFlagAmountEur(venue, flag) {
@@ -1357,8 +1362,31 @@
             this.refreshIcons();
           },
 
+          showUndo(text, action) {
+            clearTimeout(this.undoTimer);
+            this.undoBar = { visible: true, text, action };
+            this.undoTimer = setTimeout(() => {
+              this.undoBar = { visible: false, text: '', action: null };
+            }, 8000);
+          },
+
+          undoLast() {
+            const action = this.undoBar.action;
+            clearTimeout(this.undoTimer);
+            this.undoBar = { visible: false, text: '', action: null };
+            if (!action) return;
+            action();
+            this.refreshIcons();
+            this.showToast(this.t('toastRestored'));
+          },
+
           removeVenue(venueId) {
-            this.venues = this.venues.filter((v) => v.id !== venueId);
+            const removed = window.__UNDO__.removeWithUndo(this.venues, venueId);
+            if (!removed) return;
+            this.venues = removed.list;
+            this.showUndo(this.t('undoVenueRemoved'), () => {
+              this.venues = window.__UNDO__.restoreRemoved(this.venues, removed.undo);
+            });
             this.refreshIcons();
           },
 
@@ -1516,12 +1544,18 @@
           },
 
           resetDashboard() {
+            const previous = { venues: this.venues, pendingVendorAddons: this.pendingVendorAddons, pendingVenueDocs: this.pendingVenueDocs };
             this.venues = [];
             this.pendingVendorAddons = [];
+            this.pendingVenueDocs = [];
             this.batchQueue = [];
             this.failedQueue = [];
             this.refreshIcons();
-            this.showToast(this.t('toastReset'));
+            this.showUndo(this.t('undoAllCleared'), () => {
+              this.venues = previous.venues;
+              this.pendingVendorAddons = previous.pendingVendorAddons;
+              this.pendingVenueDocs = previous.pendingVenueDocs;
+            });
           },
 
           buildVendorAddonObject(v, fileName) {
@@ -1771,6 +1805,14 @@
 
           dismissPendingVendor(pendingId) {
             this.pendingVendorAddons = this.pendingVendorAddons.filter((p) => p.id !== pendingId);
+          },
+
+          handlePaste(event) {
+            if (window.__PASTE__.isEditableTarget(event.target)) return;
+            const files = window.__PASTE__.extractPasteFiles(event.clipboardData);
+            if (files.length === 0) return;
+            event.preventDefault();
+            this.processUploadedFiles(files, null);
           },
 
           handleDrop(event) {
@@ -2063,53 +2105,21 @@
           },
 
           buildShareableSummaryText() {
-            const lines = [];
-            if (this.lang === 'tr') {
-              lines.push('WEDDING QUOTE DECODER — KARŞILAŞTIRMA ÖZETİ');
-              lines.push(
-                `Misafir Sayısı: ${this.guestCount} Kişi | Para Birimi: ${this.currency} (1 € = ${this.exchangeRate.toLocaleString('tr-TR', { maximumFractionDigits: 4 })} ₺)`
-              );
-            } else {
-              lines.push('WEDDING QUOTE DECODER — COMPARISON SUMMARY');
-              lines.push(
-                `Guest Count: ${this.guestCount} Guests | Currency: ${this.currency} (1 € = ${this.exchangeRate.toLocaleString('en-US', { maximumFractionDigits: 4 })} ₺)`
-              );
-            }
-            lines.push('------------------------------------------------------------');
-
-            this.venues.forEach((v, idx) => {
-              const b = this.calculateBreakdown(v);
-              const activeRisks = v.flags.filter((f) => f.type === 'risk' && f.active).map((f) => f.label[this.lang]);
-              lines.push(`${idx + 1}. ${this.displayVenueName(v)} (${v.region[this.lang]})`);
-              if (this.lang === 'tr') {
-                lines.push(`   • Mekan Kirası: ${this.formatCurrency(v.baseFeeEur)}`);
-                lines.push(
-                  `   • Kişi Başı Yemek & İçecek (${this.guestCount} kişi): ${this.formatCurrency(v.fbPerPersonEur)} -> ${this.formatCurrency(b.fbSubtotalEur)}`
-                );
-                lines.push(`   • Seçili Ek Hizmetler, Gizli Ekler & KDV: ${this.formatCurrency(b.hiddenExtrasTotalEur)}`);
-                lines.push(
-                  `   • Gerçek Toplam: ${this.formatCurrency(b.turnkeyTotalEur)} (${this.formatCurrency(b.effectivePerGuestEur)} / kişi)`
-                );
-                if (activeRisks.length > 0) {
-                  lines.push(`   • Dahil Edilen Kalemler: ${activeRisks.join('; ')}`);
-                }
-              } else {
-                lines.push(`   • Venue Rental: ${this.formatCurrency(v.baseFeeEur)}`);
-                lines.push(
-                  `   • Per-Guest Food & Drink (${this.guestCount} guests): ${this.formatCurrency(v.fbPerPersonEur)} -> ${this.formatCurrency(b.fbSubtotalEur)}`
-                );
-                lines.push(`   • Selected Add-Ons, Hidden Costs & VAT: ${this.formatCurrency(b.hiddenExtrasTotalEur)}`);
-                lines.push(
-                  `   • True Total: ${this.formatCurrency(b.turnkeyTotalEur)} (${this.formatCurrency(b.effectivePerGuestEur)} / guest)`
-                );
-                if (activeRisks.length > 0) {
-                  lines.push(`   • Included Line Items: ${activeRisks.join('; ')}`);
-                }
-              }
-              lines.push('');
+            return window.__SUMMARY__.buildSummary({
+              venues: this.venues,
+              guestCount: this.guestCount,
+              currency: this.currency,
+              exchangeRate: this.exchangeRate,
+              lang: this.lang,
             });
+          },
 
-            return lines.join('\n');
+          summaryRows(venue) {
+            return window.__SUMMARY__.termRows(venue, { lang: this.lang, money: (eur) => this.formatCurrency(eur) });
+          },
+
+          summaryGaps(venue) {
+            return window.__SUMMARY__.gapLines(venue, this.guestCount, { lang: this.lang, money: (eur) => this.formatCurrency(eur) });
           },
 
           copySummaryToClipboard() {
@@ -2131,7 +2141,19 @@
     <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
   </head>
 
-  <body x-data="weddingQuoteApp()" x-init="init()" class="min-h-screen silk-ambient-canvas bg-pearl text-obsidian selection:bg-obsidian selection:text-pearl">
+  <body x-data="weddingQuoteApp()" x-init="init()" @paste.window="handlePaste($event)" class="min-h-screen silk-ambient-canvas bg-pearl text-obsidian selection:bg-obsidian selection:text-pearl">
+    <!-- Undo bar: destructive actions can be reverted for a few seconds -->
+    <div
+      x-show="undoBar.visible"
+      x-cloak
+      class="fixed bottom-5 left-5 z-50 flex items-center gap-3 rounded-full border border-champagne/40 bg-obsidian py-2 pl-5 pr-2 text-sm text-pearl shadow-atelier no-print"
+      role="status"
+      aria-live="polite"
+    >
+      <span x-text="undoBar.text"></span>
+      <button type="button" @click="undoLast()" class="rounded-full bg-champagne px-4 py-1.5 text-xs font-semibold text-obsidian transition-colors hover:bg-pearl" x-text="t('undoBtn')"></button>
+    </div>
+
     <!-- Toast Notification -->
     <div
       x-show="toastVisible"
@@ -3714,6 +3736,18 @@
                   <span class="font-semibold text-peony tabular-nums" x-text="formatCurrency(calculateBreakdown(venue).hiddenExtrasTotalEur)"></span>
                 </div>
               </div>
+
+              <dl x-show="summaryRows(venue).length > 0" class="mt-3 space-y-1 border-t border-champagne-soft pt-3 text-xs">
+                <template x-for="row in summaryRows(venue)" :key="row[0]">
+                  <div class="flex items-start justify-between gap-3">
+                    <dt class="text-stone" x-text="row[0]"></dt>
+                    <dd class="text-right font-medium text-obsidian" x-text="row[1]"></dd>
+                  </div>
+                </template>
+              </dl>
+
+              <p x-show="summaryGaps(venue).missing.length > 0" class="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800" x-text="'⚠ ' + t('summaryMissingTitle') + ': ' + summaryGaps(venue).missing.join('; ')"></p>
+              <p x-show="summaryGaps(venue).asks.length > 0" class="mt-2 text-xs leading-relaxed text-stone" x-text="'? ' + t('summaryAskTitle') + ': ' + summaryGaps(venue).asks.join(', ')"></p>
             </div>
           </template>
         </div>
