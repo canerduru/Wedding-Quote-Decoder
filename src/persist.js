@@ -91,7 +91,7 @@ export function serializeState(state) {
     guestCount: state.guestCount,
     currency: state.currency,
     exchangeRate: state.exchangeRate,
-    venues: state.venues.map((v) => ({ ...v, uploadedPreviewUrl: '' })),
+    venues: state.venues.map(({ extraPreviews, mergeConflicts, ...v }) => ({ ...v, uploadedPreviewUrl: '' })),
   });
 }
 
