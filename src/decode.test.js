@@ -113,3 +113,19 @@ test('sema para birimini ister ve cevirme isini modele birakmaz', async () => {
   assert.ok(!/38\.5|1\.08|0\.85|divide by/i.test(prompt));
   assert.match(prompt, /ORIGINAL currency/);
 });
+
+test('sema teklif kosullarini ister', async () => {
+  const h = harness([ok()]);
+  await decodeQuote(h.args);
+  const schema = h.calls[0].body.generationConfig.responseSchema;
+  for (const key of ['minimumSpend', 'depositNote', 'cancellationNote', 'validUntil']) {
+    assert.ok(schema.properties[key], key);
+    assert.ok(schema.required.includes(key), key);
+  }
+  assert.equal(schema.properties.minimumSpend.type, 'NUMBER');
+  assert.ok(schema.properties.depositNote.required.includes('tr'));
+  const prompt = h.calls[0].body.contents[0].parts[1].text;
+  assert.match(prompt, /minimumSpend/);
+  assert.match(prompt, /validUntil/);
+  assert.match(prompt, /NEVER invent/i);
+});
