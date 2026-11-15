@@ -1,0 +1,2738 @@
+<!doctype html>
+<html lang="tr" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wedding Quote Decoder — Düğün Mekanı Teklifi Karşılaştırma Atölyesi</title>
+    <meta
+      name="description"
+      content="Yüklediğiniz WhatsApp ekran görüntüleri ve PDF mekan tekliflerini tek sayfada çözen, dış hizmet tekliflerini eşleştiren ve şeffafça karşılaştırmanıza olanak veren dijital düğün bütçe atölyesi."
+    />
+    <meta property="og:title" content="Wedding Quote Decoder" />
+    <meta
+      property="og:description"
+      content="Yüklediğiniz WhatsApp ekran görüntüleri ve PDF mekan tekliflerini tek sayfada çözen, dış hizmet tekliflerini eşleştiren ve şeffafça karşılaştırmanıza olanak veren dijital düğün bütçe atölyesi."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Google Fonts: Cormorant Garamond & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              pearl: '#FCFAF8',
+              blush: '#F9F3F0',
+              obsidian: '#181316',
+              stone: '#6E6562',
+              champagne: '#C8A97E',
+              'champagne-line': '#EADFD8',
+              'champagne-soft': '#EFE6E0',
+              peony: '#BE123C',
+              'peony-bg': '#FFF1F2',
+              emeraldSafe: '#0F766E',
+              'emeraldSafe-bg': '#F0FDFA',
+            },
+            fontFamily: {
+              serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+              sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+            },
+            boxShadow: {
+              atelier: '0 24px 60px -15px rgba(24, 19, 22, 0.07)',
+              card: '0 16px 40px -12px rgba(24, 19, 22, 0.06)',
+              glow: '0 24px 70px -12px rgba(200, 169, 126, 0.24)',
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      [x-cloak] {
+        display: none !important;
+      }
+
+      body {
+        background-color: #FCFAF8;
+        color: #181316;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .silk-ambient-canvas {
+        background-image:
+          radial-gradient(ellipse 75% 42% at 50% -6%, rgba(243, 232, 226, 0.92) 0%, rgba(249, 243, 240, 0.65) 45%, rgba(252, 250, 248, 0) 100%),
+          radial-gradient(circle at 85% 12%, rgba(200, 169, 126, 0.09) 0%, rgba(252, 250, 248, 0) 45%);
+      }
+
+      .tabular-nums {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .text-balance {
+        text-wrap: balance;
+      }
+
+      input[type='range'].atelier-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 6px;
+        border-radius: 9999px;
+        cursor: pointer;
+      }
+
+      input[type='range'].atelier-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 22px;
+        width: 22px;
+        border-radius: 9999px;
+        background: #181316;
+        border: 3px solid #FFFFFF;
+        box-shadow: 0 3px 10px rgba(24, 19, 22, 0.24), 0 0 0 1px rgba(200, 169, 126, 0.45);
+        transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      input[type='range'].atelier-slider:hover::-webkit-slider-thumb,
+      input[type='range'].atelier-slider:focus-visible::-webkit-slider-thumb {
+        transform: scale(1.1);
+        box-shadow: 0 4px 14px rgba(24, 19, 22, 0.3), 0 0 0 3px rgba(200, 169, 126, 0.35);
+      }
+
+      input[type='range'].atelier-slider::-moz-range-track {
+        height: 6px;
+        border-radius: 9999px;
+        background: transparent;
+      }
+
+      input[type='range'].atelier-slider::-moz-range-thumb {
+        height: 22px;
+        width: 22px;
+        border-radius: 9999px;
+        background: #181316;
+        border: 3px solid #FFFFFF;
+        box-shadow: 0 3px 10px rgba(24, 19, 22, 0.24), 0 0 0 1px rgba(200, 169, 126, 0.45);
+        transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      @media print {
+        header,
+        #upload-hero,
+        #equalizer-bar,
+        footer,
+        .no-print {
+          display: none !important;
+        }
+        body {
+          background: #FFFFFF !important;
+        }
+      }
+    </style>
+
+    <!-- Local Curated Architectural Bridal Cover Assets -->
+    <script type="module">
+      import lakeVilla from '/src/assets/images/venue_lake_villa_1794746162085.jpg';
+      import bosphorusPalace from '/src/assets/images/venue_bosphorus_palace_1794746162314.jpg';
+      import tuscanEstate from '/src/assets/images/venue_tuscan_estate_1794746162354.jpg';
+      import modernAtelier from '/src/assets/images/venue_modern_atelier_1794746162634.jpg';
+
+      window.__VENUE_COVERS__ = {
+        lakeVilla,
+        bosphorusPalace,
+        tuscanEstate,
+        modernAtelier,
+      };
+    </script>
+
+    <!-- Alpine.js State Store & Bilingual Dictionary -->
+    <script>
+      const CANONICAL_CATEGORY_ORDER = ['tax', 'catering', 'music', 'floral', 'boat', 'photo', 'other'];
+
+      const VENDOR_CATEGORY_META = {
+        tax: {
+          badge: { tr: '🧾 Vergi / KDV', en: '🧾 Tax / VAT' },
+          fullTitle: { tr: 'Vergi / KDV / Harç', en: 'Tax / VAT / Duty' },
+          keywords: ['kdv', 'vat', 'iva', 'vergi', 'tax', 'stopaj', 'harç', 'harc', 'turizm vergi', 'duty'],
+        },
+        catering: {
+          badge: { tr: '🍽️ Catering', en: '🍽️ Catering' },
+          fullTitle: { tr: 'Dış Catering Teklifi', en: 'External Catering Quote' },
+          keywords: ['catering', 'mutfak', 'yemek', 'kitchen', 'f&b', 'ikram', 'menü', 'menu', 'gastronomi', 'şef', 'chef'],
+        },
+        music: {
+          badge: { tr: '🎵 Müzik', en: '🎵 Music' },
+          fullTitle: { tr: 'Müzik, Ses & Işık Teklifi', en: 'Music, Sound & Lighting Quote' },
+          keywords: ['müzik', 'music', 'siae', 'dj', 'ses', 'sound', 'ışık', 'lighting', 'band', 'orkestra', 'canlı', 'telif'],
+        },
+        floral: {
+          badge: { tr: '🌸 Çiçek', en: '🌸 Floral' },
+          fullTitle: { tr: 'Çiçek & Dekorasyon Teklifi', en: 'Floral & Decor Quote' },
+          keywords: ['çiçek', 'dekor', 'floral', 'flower', 'buket', 'bouquet', 'aranjman', 'decor'],
+        },
+        boat: {
+          badge: { tr: '🚤 Tekne', en: '🚤 Boat' },
+          fullTitle: { tr: 'Tekne & Transfer Teklifi', en: 'Boat & Transfer Quote' },
+          keywords: ['tekne', 'iskele', 'boat', 'yacht', 'yat', 'water taxi', 'transfer', 'pier', 'dock', 'vale'],
+        },
+        photo: {
+          badge: { tr: '📸 Fotoğraf', en: '📸 Photo' },
+          fullTitle: { tr: 'Fotoğraf & Video Teklifi', en: 'Photo & Video Quote' },
+          keywords: ['fotoğraf', 'photo', 'video', 'kamera', 'film', 'drone'],
+        },
+        other: {
+          badge: { tr: '✨ Diğer', en: '✨ Other' },
+          fullTitle: { tr: 'Ek Hizmet & Ücret', en: 'Additional Service & Fee' },
+          keywords: [],
+        },
+      };
+
+      const I18N = {
+        tr: {
+          pageTitle: 'Wedding Quote Decoder — Düğün Mekanı Teklifi Karşılaştırma Atölyesi',
+          navUpload: 'Teklif Yükle',
+          navCompare: 'Karşılaştırma',
+          shareSummaryCta: 'Ortak Özet',
+          heroKicker: 'Dijital Düğün Bütçe Atölyesi · Çoklu Görsel & PDF Okuyucu',
+          heroTitle: 'Yüklediğiniz teklifleri tek ekranda zarafetle karşılaştırın.',
+          heroSubtitle:
+            'Mekan ve dış hizmet (çiçek, tekne, catering, DJ) tekliflerini bırakın. Yapay zeka belge türünü otomatik tanır; mekanları yan yana dizer, gizli maliyetleri şeffafça hesaplar.',
+          dropzoneCopy:
+            'WhatsApp Ekran Görüntülerini (JPEG/PNG) veya Mekan PDF’lerini Buraya Bırakın. Excel eziyeti bitsin, yapay zeka saniyeler içinde karşılaştırsın.',
+          dropzoneFormats:
+            'Çoklu dosya seçimi desteklenir · PNG, JPEG, WEBP, PDF · Maks. 20 MB',
+          btnChooseFile: 'Çoklu Dosya Seç veya Sürükle',
+          btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
+          btnReset: 'Tümünü Temizle',
+          ocrTitle: 'Yüklenen Belgeler İnceleniyor',
+          ocrStatusPending: 'Sırada',
+          ocrStatusScanning: 'Okunuyor...',
+          ocrStatusDone: 'Tamamlandı',
+          ocrStatusError: 'Hata',
+          failedHeading: 'Bazı dosyalar anlık yoğunluk nedeniyle okunamadı:',
+          btnRetryFile: 'Tekrar Dene',
+          btnAddManual: 'Manuel Kart Ekle',
+          btnDismissFailed: 'Kapat',
+          vendorAssignKicker: 'Ek Hizmet Teklifi Tespit Edildi',
+          vendorAssignQuestionTail: 'okundu. Bu maliyeti hangi mekana eklemek istersiniz?',
+          vendorAssignWaitingNote:
+            'Henüz bir mekan kartı yok. Yukarıdan mekan teklifi yüklediğinizde tek tıkla bağlayabilirsiniz veya ayrı kart olarak açabilirsiniz.',
+          vendorAssignOnlyPrefix: 'Sadece',
+          vendorAssignMissing: 'Bu Hizmeti Hariç Olan Mekanlara Ekle',
+          vendorAssignAll: 'Tüm Mekanlara Ekle',
+          vendorAssignStandalone: 'Ayrı Kart Olarak Aç',
+          vendorAssignDismiss: 'Vazgeç',
+          cardVendorDropCta: '📎 Bu Mekana Ek Teklif Dosyası Yükle (Çiçek, Tekne, Catering)',
+          cardVendorScanning: 'Ek hizmet teklifi okunuyor ve karta işleniyor...',
+          replacedByNote: 'Gerçek teklifle değiştirildi',
+          guestLabel: 'Misafir Sayısı',
+          guestUnit: 'Kişi',
+          refRate: 'Referans Kur: 1 € = 38,50 ₺',
+          activeVenuesLabel: 'mekan karşılaştırılıyor',
+          comparisonTitle: 'Mekan Karşılaştırma Koleksiyonu',
+          comparisonSubtitleTail:
+            'davetli için kira, ikram ve seçili ek maliyetler dahil anahtar teslim görünüm.',
+          comparisonHint:
+            'İsimleri, tutarları ve gizli kalemleri doğrudan kart üzerinde düzenleyebilirsiniz.',
+          guideTitle: 'Kendi Tekliflerinizi Yükleyerek Başlayın',
+          guideSubtitle:
+            'Burada yalnızca sizin yüklediğiniz mekan ve dış hizmet teklifleri veya manuel oluşturduğunuz kartlar yer alır.',
+          guideStep1Kicker: 'Akıllı Ayrıştırma',
+          guideStep1Title: 'Mekan mı, Ek Hizmet mi?',
+          guideStep1Body:
+            'Mekan teklifleri ayrı karşılaştırma sütunu açar; çiçek, tekne veya dış catering teklifleri mekan kartlarına eklenmek üzere hazırlanır.',
+          guideStep2Kicker: 'Adlandır & Birleştir',
+          guideStep2Title: 'Bilinmeyen İsimleri Düzenleyin',
+          guideStep2Body:
+            'Ekran görüntüsünde mekan adı yoksa kart üzerinde hemen isim verin; aynı mekana ait 2 görseli tek tıkla birleştirin.',
+          guideStep3Kicker: 'Çifte Sayımı Önle',
+          guideStep3Title: 'Akıllı Yer Değiştirme',
+          guideStep3Body:
+            'Gerçek bir dış catering veya müzik teklifi eklediğinizde, karttaki eski tahmini uyarı otomatik olarak pasife alınır.',
+          unknownNameBadge: 'Mekan adı belgede bulunamadı',
+          unknownNamePlaceholder: 'Mekan adını buraya yazın (Örn: Boğaz Oteli)',
+          unnamedVenueFallback: 'İsimsiz Mekan',
+          editBtn: 'Düzenle',
+          doneEditingBtn: 'Tamamla',
+          removeVenueLabel: 'Kartı sil',
+          mergeSelectPlaceholder: 'Başka kartla birleştir...',
+          nameEditLabel: 'Mekan Adı',
+          regionEditLabel: 'Bölge / Şehir',
+          baseFeeEditLabel: 'Mekan Kirası (€)',
+          fbEditLabel: 'Kişi Başı F&B (€)',
+          baseFeeLabel: 'Mekan Kirası',
+          fbPerPersonLabel: 'Kişi Başı F&B',
+          selectedExtrasLabel: 'Seçili Ekler & Vergiler',
+          budgetMixLabel: 'Maliyet Dağılımı',
+          legendRent: 'Kira',
+          legendFb: 'F&B',
+          legendExtras: 'Ekler & KDV',
+          turnkeyTitle: 'Anahtar Teslim Toplam Maliyet',
+          bestValueBadge: '✨ En Avantajlı Seçim',
+          deltaSuffix: 'fark',
+          perGuestNet: 'Kişi başı net:',
+          aiFlagsTitle: 'Ek Hizmetler & Gizli Maliyetler',
+          aiFlagsHint: 'Tüm kartlarda sabit sırada hizalı',
+          categoryNotSpecified: 'Bu teklifte belirtilmedi',
+          quickAddCategoryBtn: '+ Ekle',
+          newFlagCategoryLabel: 'Kategori (Hiza Grubu)',
+          newFlagCategoryAuto: 'Otomatik Algıla',
+          excludedLabel: 'Hariç',
+          includedLabel: 'Dahil',
+          removeFlagLabel: 'Kalemi sil',
+          btnShowAddFlag: '+ Yeni Gizli Maliyet / Vergi Ekle',
+          newFlagLabelPlaceholder: 'Kalem adı (Örn: KDV +%20, DJ, Servis)',
+          newFlagTypeFixed: 'Sabit (€)',
+          newFlagTypePerGuest: 'Kişi Başı (€)',
+          newFlagTypeVat: 'Oran / KDV (%)',
+          newFlagAmountPlaceholder: 'Tutar veya %',
+          btnSaveNewFlag: 'Kalemi Ekle',
+          btnCancelNewFlag: 'İptal',
+          noFlagsYet: 'Henüz ek maliyet kalemi yok. Aşağıdan yeni kalem ekleyebilir veya ek hizmet teklifi bırakabilirsiniz.',
+          viewQuoteShot: 'Teklif Görseli',
+          viewMoodCover: 'Mekan Atmosferi',
+          viewRealPhoto: 'Gerçek Fotoğraf',
+          photoSearching: 'Gerçek mekan fotoğrafı aranıyor...',
+          photoRefreshTitle: 'İnternetten mekan fotoğrafını ara / yenile',
+          footerTagline: 'Dijital Gelinlik & Mekan Bütçe Atölyesi · Yalnızca Sizin Teklifleriniz',
+          modalKicker: 'Partner & Planlayıcı Özeti',
+          modalTitle: 'Ortak Paylaşım Özeti',
+          modalClose: 'Kapat',
+          modalGuests: 'Davetli Sayısı:',
+          modalCurrency: 'Para Birimi:',
+          modalBaseRent: 'Mekan Kirası',
+          modalFbTotal: 'F&B Toplam',
+          modalHiddenVat: 'Ek Hizmetler & KDV',
+          btnPrintPdf: 'Yazdır / PDF Kaydet',
+          btnCopySummary: 'Özeti Kopyala',
+          btnCopiedSummary: 'Panoya Kopyalandı ✓',
+          perGuestShort: 'kişi',
+          toastReset: 'Tüm kartlar temizlendi. Yeni tekliflerinizi yükleyebilirsiniz.',
+          toastVenueAdded: 'mekan teklifi okundu ve karşılaştırmaya eklendi.',
+          toastVendorAutoMatched: 'teklifi otomatik olarak şu karta eklendi:',
+          toastVendorAssigned: 'ek hizmet teklifi seçili mekana eklendi.',
+          toastVendorMissingNoMatch: 'Tüm aktif mekanlarda bu hizmet zaten dahil görünüyor; dilerseniz Tekil/Tümünü kullanın.',
+          toastVendorAssignedCount: 'mekana eklendi.',
+          toastVendorStandalone: 'Ek hizmet ayrı bir karşılaştırma kartı olarak açıldı.',
+          toastParseError: 'Bazı belgeler yoğunluk nedeniyle okunamadı. Aşağıdan tekrar deneyebilir veya manuel ekleyebilirsiniz.',
+          toastMerged: 'İki kart birleştirildi. Rakamları aşağıdan kontrol edebilirsiniz.',
+          toastBlankAdded: 'Yeni boş mekan kartı eklendi. Bilgileri doldurabilirsiniz.',
+          toastLangSwitched: 'Arayüz dili Türkçe olarak güncellendi.',
+        },
+        en: {
+          pageTitle: 'Wedding Quote Decoder — Digital Bridal Venue & Vendor Budget Atelier',
+          navUpload: 'Upload Quotes',
+          navCompare: 'Comparison',
+          shareSummaryCta: 'Share Summary',
+          heroKicker: 'Digital Bridal Budget Atelier · Multi-Image & PDF Reader',
+          heroTitle: 'Compare your venue and vendor quotes on one luminous canvas.',
+          heroSubtitle:
+            'Drop venue proposals or standalone service quotes (florist, boat, catering, DJ). AI classifies documents automatically and reveals true turnkey totals.',
+          dropzoneCopy:
+            'Drop WhatsApp Screenshots (JPEG/PNG) or Venue PDFs Here. End spreadsheet fatigue—decode hidden costs in seconds.',
+          dropzoneFormats:
+            'Multi-file selection supported · PNG, JPEG, WEBP, PDF · Max 20 MB',
+          btnChooseFile: 'Select or Drop Multiple Files',
+          btnAddBlankVenue: '+ Add Blank Venue Card',
+          btnReset: 'Clear All',
+          ocrTitle: 'Decoding Uploaded Quotes',
+          ocrStatusPending: 'Queued',
+          ocrStatusScanning: 'Reading...',
+          ocrStatusDone: 'Done',
+          ocrStatusError: 'Error',
+          failedHeading: 'Some files could not be decoded due to temporary high demand:',
+          btnRetryFile: 'Retry',
+          btnAddManual: 'Add Manual Card',
+          btnDismissFailed: 'Dismiss',
+          vendorAssignKicker: 'External Vendor Quote Detected',
+          vendorAssignQuestionTail: 'decoded. Which venue card should this cost be added to?',
+          vendorAssignWaitingNote:
+            'No venue cards yet. Upload a venue quote above to assign with 1 click, or open this as a standalone card.',
+          vendorAssignOnlyPrefix: 'Only',
+          vendorAssignMissing: 'Add to Venues Missing This Service',
+          vendorAssignAll: 'Add to All Venues',
+          vendorAssignStandalone: 'Open as Separate Card',
+          vendorAssignDismiss: 'Dismiss',
+          cardVendorDropCta: '📎 Upload Add-On Quote to This Venue (Floral, Boat, Catering)',
+          cardVendorScanning: 'Reading vendor add-on quote and attaching to card...',
+          replacedByNote: 'Replaced by uploaded quote',
+          guestLabel: 'Guest Count',
+          guestUnit: 'Guests',
+          refRate: 'Reference Rate: 1 € = 38.50 ₺',
+          activeVenuesLabel: 'venues compared',
+          comparisonTitle: 'Curated Venue Comparison',
+          comparisonSubtitleTail:
+            'guests — net turnkey view including rental, catering, vendor add-ons, and taxes.',
+          comparisonHint:
+            'Edit names, figures, and cost switches directly—or drop add-on quotes onto any card.',
+          guideTitle: 'Start by Uploading Your Own Quotes',
+          guideSubtitle:
+            'This workspace displays only the venue proposals, vendor quotes, or manual cards you add.',
+          guideStep1Kicker: 'Smart Classification',
+          guideStep1Title: 'Venue vs. Vendor Add-On',
+          guideStep1Body:
+            'Primary venue proposals open comparison columns; standalone florist, boat, or catering quotes route cleanly onto venue cards.',
+          guideStep2Kicker: 'Name & Merge',
+          guideStep2Title: 'Fix Missing Venue Names',
+          guideStep2Body:
+            'If a screenshot lacks a venue header, type the name right on the card—or merge 2 screenshots from the same venue.',
+          guideStep3Kicker: 'Zero Double-Counting',
+          guideStep3Title: 'Automatic Placeholder Override',
+          guideStep3Body:
+            'Attaching a real catering or music quote automatically disables matching placeholder risk estimates on that card.',
+          unknownNameBadge: 'Venue name not found in file',
+          unknownNamePlaceholder: 'Enter venue name (e.g. Villa Balbiano)',
+          unnamedVenueFallback: 'Unnamed Venue',
+          editBtn: 'Edit',
+          doneEditingBtn: 'Done',
+          removeVenueLabel: 'Delete card',
+          mergeSelectPlaceholder: 'Merge into another card...',
+          nameEditLabel: 'Venue Name',
+          regionEditLabel: 'Region / City',
+          baseFeeEditLabel: 'Venue Rental (€)',
+          fbEditLabel: 'Per-Guest F&B (€)',
+          baseFeeLabel: 'Venue Rental',
+          fbPerPersonLabel: 'Per-Guest F&B',
+          selectedExtrasLabel: 'Selected Add-Ons & VAT',
+          budgetMixLabel: 'Cost Mix',
+          legendRent: 'Rental',
+          legendFb: 'F&B',
+          legendExtras: 'Extras & VAT',
+          turnkeyTitle: 'Turnkey Total Cost',
+          bestValueBadge: '✨ Most Advantageous',
+          deltaSuffix: 'difference',
+          perGuestNet: 'Net per guest:',
+          aiFlagsTitle: 'Vendor Add-Ons & Hidden Costs',
+          aiFlagsHint: 'Aligned in fixed order across cards',
+          categoryNotSpecified: 'Not specified in this quote',
+          quickAddCategoryBtn: '+ Add',
+          newFlagCategoryLabel: 'Category (Alignment Group)',
+          newFlagCategoryAuto: 'Auto-Detect',
+          excludedLabel: 'Excluded',
+          includedLabel: 'Included',
+          removeFlagLabel: 'Remove item',
+          btnShowAddFlag: '+ Add New Hidden Cost / Tax',
+          newFlagLabelPlaceholder: 'Item name (e.g. VAT +20%, Service, DJ)',
+          newFlagTypeFixed: 'Fixed (€)',
+          newFlagTypePerGuest: 'Per Guest (€)',
+          newFlagTypeVat: 'Percentage / VAT (%)',
+          newFlagAmountPlaceholder: 'Amount or %',
+          btnSaveNewFlag: 'Add Item',
+          btnCancelNewFlag: 'Cancel',
+          noFlagsYet: 'No extra cost items yet. Add a custom surcharge or drop a vendor quote below.',
+          viewQuoteShot: 'Quote Image',
+          viewMoodCover: 'Venue Mood',
+          viewRealPhoto: 'Real Photo',
+          photoSearching: 'Finding real venue photo...',
+          photoRefreshTitle: 'Search / refresh real venue photo online',
+          footerTagline: 'Digital Bridal Budget Atelier · Only Your Quotes',
+          modalKicker: 'Partner & Planner Brief',
+          modalTitle: 'Shareable Comparison Summary',
+          modalClose: 'Close',
+          modalGuests: 'Guest Count:',
+          modalCurrency: 'Currency:',
+          modalBaseRent: 'Venue Rental',
+          modalFbTotal: 'F&B Subtotal',
+          modalHiddenVat: 'Add-Ons, Extras & VAT',
+          btnPrintPdf: 'Print / Save PDF',
+          btnCopySummary: 'Copy Summary',
+          btnCopiedSummary: 'Copied to Clipboard ✓',
+          perGuestShort: 'guest',
+          toastReset: 'All cards cleared. Upload your new quotes anytime.',
+          toastVenueAdded: 'venue quote(s) decoded and added to comparison.',
+          toastVendorAutoMatched: 'quote automatically attached to:',
+          toastVendorAssigned: 'vendor quote added to selected venue.',
+          toastVendorMissingNoMatch: 'All active venues already include this service; use individual or Add to All.',
+          toastVendorAssignedCount: 'venues updated.',
+          toastVendorStandalone: 'Vendor quote opened as a separate comparison card.',
+          toastParseError: 'Some files could not be decoded due to high demand. Retry below or add manually.',
+          toastMerged: 'Cards merged. Verify the combined figures below.',
+          toastBlankAdded: 'Blank venue card added. Enter your figures directly.',
+          toastLangSwitched: 'Interface language switched to English.',
+        },
+      };
+
+      function normalizeMatchText(str) {
+        return (str || '')
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, ' ')
+          .trim();
+      }
+
+      function readFileAsBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = typeof reader.result === 'string' ? reader.result : '';
+            const commaIdx = result.indexOf(',');
+            if (commaIdx === -1) {
+              reject(new Error('Invalid file encoding'));
+              return;
+            }
+            resolve(result.slice(commaIdx + 1));
+          };
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function weddingQuoteApp() {
+        return {
+          lang: 'tr',
+          guestCount: 120,
+          currency: 'EUR',
+          exchangeRate: 38.5,
+          canonicalCategories: CANONICAL_CATEGORY_ORDER,
+          venues: [],
+          pendingVendorAddons: [],
+          isDragging: false,
+          dragOverVenueId: null,
+          isScanning: false,
+          cardScanningId: null,
+          batchQueue: [],
+          failedQueue: [],
+          showSummaryModal: false,
+          copiedSummary: false,
+          toastMessage: '',
+          toastVisible: false,
+
+          init() {
+            this.$nextTick(() => {
+              if (window.lucide) window.lucide.createIcons();
+            });
+          },
+
+          t(key) {
+            return I18N[this.lang][key] || key;
+          },
+
+          setLang(newLang) {
+            if (this.lang === newLang) return;
+            this.lang = newLang;
+            document.documentElement.lang = newLang;
+            document.title = this.t('pageTitle');
+            this.showToast(this.t('toastLangSwitched'));
+          },
+
+          refreshIcons() {
+            this.$nextTick(() => {
+              if (window.lucide) window.lucide.createIcons();
+            });
+          },
+
+          showToast(msg) {
+            this.toastMessage = msg;
+            this.toastVisible = true;
+            setTimeout(() => {
+              this.toastVisible = false;
+            }, 4000);
+          },
+
+          getSliderProgressStyle() {
+            const min = 5;
+            const max = 300;
+            const pct = Math.min(100, Math.max(0, ((this.guestCount - min) / (max - min)) * 100));
+            return `background: linear-gradient(to right, #C8A97E 0%, #C8A97E ${pct}%, #EFE6E0 ${pct}%, #EFE6E0 100%)`;
+          },
+
+          resolveCoverKey(regionObj, typeObj, nameStr, fallbackIndex = 0) {
+            const combined = `${regionObj?.tr || ''} ${regionObj?.en || ''} ${typeObj?.tr || ''} ${typeObj?.en || ''} ${nameStr || ''}`.toLowerCase();
+            if (/saray|palace|boğaz|bosphorus|istanbul|çırağan|ciragan|hotel|otel|yalı|waterfront/.test(combined)) {
+              return 'bosphorusPalace';
+            }
+            if (/como|lake|göl|villa|bodrum|riviera|capri|amalfi|sea|deniz|beach/.test(combined)) {
+              return 'lakeVilla';
+            }
+            if (/toskana|tuscany|estate|malikane|bağ|vineyard|kır|stone|taş|countryside|alaçatı|url|olive/.test(combined)) {
+              return 'tuscanEstate';
+            }
+            if (/sera|glass|atelier|bahçe|garden|modern|loft|conservatory|botanik/.test(combined)) {
+              return 'modernAtelier';
+            }
+            const keys = ['lakeVilla', 'bosphorusPalace', 'tuscanEstate', 'modernAtelier'];
+            return keys[fallbackIndex % keys.length];
+          },
+
+          getAvailableCoverModes(venue) {
+            const modes = [];
+            if (venue.realPhotoUrl && !venue.realPhotoError) modes.push('real');
+            if (venue.uploadedPreviewUrl) modes.push('quote');
+            modes.push('mood');
+            return modes;
+          },
+
+          getActiveCoverKind(venue) {
+            const hasReal = Boolean(venue.realPhotoUrl && !venue.realPhotoError);
+            const hasQuote = Boolean(venue.uploadedPreviewUrl);
+            if (venue.coverMode === 'real' && hasReal) return 'real';
+            if (venue.coverMode === 'quote' && hasQuote) return 'quote';
+            if (venue.coverMode === 'mood') return 'mood';
+            if (hasReal) return 'real';
+            if (hasQuote) return 'quote';
+            return 'mood';
+          },
+
+          getVenueCoverUrl(venue) {
+            const kind = this.getActiveCoverKind(venue);
+            if (kind === 'real' && venue.realPhotoUrl) {
+              return venue.realPhotoUrl;
+            }
+            if (kind === 'quote' && venue.uploadedPreviewUrl) {
+              return venue.uploadedPreviewUrl;
+            }
+            const covers = window.__VENUE_COVERS__ || {};
+            if (venue.coverKey && covers[venue.coverKey]) {
+              return covers[venue.coverKey];
+            }
+            const key = this.resolveCoverKey(venue.region, venue.venueType, venue.name);
+            return covers[key] || covers.lakeVilla || '';
+          },
+
+          handleCoverImgError(venue) {
+            const kind = this.getActiveCoverKind(venue);
+            if (kind === 'real') {
+              venue.realPhotoError = true;
+              venue.coverMode = 'auto';
+              return;
+            }
+            if (kind === 'quote') {
+              venue.uploadedPreviewUrl = '';
+              venue.coverMode = 'mood';
+              return;
+            }
+            venue.coverError = true;
+          },
+
+          cycleCoverMode(venue) {
+            const modes = this.getAvailableCoverModes(venue);
+            if (modes.length <= 1) return;
+            const current = this.getActiveCoverKind(venue);
+            const idx = modes.indexOf(current);
+            const nextMode = modes[(idx + 1) % modes.length];
+            venue.coverMode = nextMode;
+            venue.coverError = false;
+          },
+
+          getNextCoverToggleLabel(venue) {
+            const modes = this.getAvailableCoverModes(venue);
+            if (modes.length <= 1) return '';
+            const current = this.getActiveCoverKind(venue);
+            const idx = modes.indexOf(current);
+            const nextMode = modes[(idx + 1) % modes.length];
+            if (nextMode === 'real') return this.t('viewRealPhoto');
+            if (nextMode === 'quote') return this.t('viewQuoteShot');
+            return this.t('viewMoodCover');
+          },
+
+          async fetchVenuePhoto(venueId, force = false) {
+            const venue = this.venues.find((v) => v.id === venueId);
+            if (!venue) return;
+            const name = (venue.name || '').trim();
+            if (name.length < 2) return;
+
+            const rawRegion = (venue.region?.[this.lang] || venue.region?.en || venue.region?.tr || '').trim();
+            const region = /belirtilmedi|unspecified|şehir|city|manuel|manual/i.test(rawRegion) ? '' : rawRegion;
+            const queryKey = `${name.toLowerCase()}::${region.toLowerCase()}`;
+
+            if (!force && venue.photoQueryKey === queryKey && (venue.photoStatus === 'searching' || venue.photoStatus === 'found')) {
+              return;
+            }
+
+            venue.photoQueryKey = queryKey;
+            venue.photoStatus = 'searching';
+            venue.realPhotoError = false;
+
+            try {
+              const resp = await fetch('/api/find-venue-photo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, region, force }),
+              });
+              const data = await resp.json();
+
+              const currentVenue = this.venues.find((v) => v.id === venueId);
+              if (!currentVenue || currentVenue.photoQueryKey !== queryKey) return;
+
+              if (resp.ok && data?.found && data?.proxyUrl) {
+                currentVenue.realPhotoUrl = data.proxyUrl;
+                currentVenue.realPhotoSourceUrl = data.sourceUrl || '';
+                currentVenue.realPhotoSourceLabel = data.sourceLabel || '';
+                currentVenue.realPhotoError = false;
+                currentVenue.photoStatus = 'found';
+                currentVenue.coverMode = 'auto';
+                currentVenue.coverError = false;
+              } else {
+                currentVenue.realPhotoUrl = '';
+                currentVenue.realPhotoSourceUrl = '';
+                currentVenue.realPhotoSourceLabel = '';
+                currentVenue.photoStatus = 'not_found';
+              }
+            } catch {
+              const currentVenue = this.venues.find((v) => v.id === venueId);
+              if (currentVenue && currentVenue.photoQueryKey === queryKey) {
+                currentVenue.photoStatus = 'not_found';
+              }
+            } finally {
+              this.refreshIcons();
+            }
+          },
+
+          onVenueNameCommitted(venue) {
+            if (!venue) return;
+            const trimmed = (venue.name || '').trim();
+            if (trimmed.length > 0) {
+              venue.nameUnknown = false;
+              if (trimmed.length >= 2) {
+                this.fetchVenuePhoto(venue.id, false);
+              }
+            }
+          },
+
+          getCategoryBadge(category) {
+            const meta = VENDOR_CATEGORY_META[category] || VENDOR_CATEGORY_META.other;
+            return meta.badge[this.lang];
+          },
+
+          getFlagMicroPill(flag) {
+            if (flag.vendorCategory) {
+              return this.getCategoryBadge(flag.vendorCategory);
+            }
+            if (flag.calcType === 'vat_pct') {
+              return VENDOR_CATEGORY_META.tax.badge[this.lang];
+            }
+            return '';
+          },
+
+          getCategoryFullTitle(category) {
+            const meta = VENDOR_CATEGORY_META[category] || VENDOR_CATEGORY_META.other;
+            return meta.fullTitle[this.lang];
+          },
+
+          displayVenueName(venue) {
+            const trimmed = (venue.name || '').trim();
+            return trimmed.length > 0 ? trimmed : this.t('unnamedVenueFallback');
+          },
+
+          formatCurrency(eurAmount) {
+            const safeAmount = Number.isFinite(Number(eurAmount)) ? Number(eurAmount) : 0;
+            const val = this.currency === 'EUR' ? safeAmount : safeAmount * this.exchangeRate;
+            const rounded = Math.round(val);
+            const locale = this.lang === 'tr' ? 'tr-TR' : 'en-US';
+            if (this.currency === 'EUR') {
+              return '€' + rounded.toLocaleString(locale);
+            }
+            return '₺' + rounded.toLocaleString(locale);
+          },
+
+          getFlagAmountEur(venue, flag) {
+            if (flag.type !== 'risk') return 0;
+            if (flag.calcType === 'fixed') return Number(flag.amount) || 0;
+            if (flag.calcType === 'per_guest') return (Number(flag.amount) || 0) * this.guestCount;
+            if (flag.calcType === 'vendor_vat_pct') {
+              const vBase = (Number(flag.vendorBaseEur) || 0) + (Number(flag.vendorPerGuestEur) || 0) * this.guestCount;
+              return (vBase * (Number(flag.amount) || 0)) / 100;
+            }
+            if (flag.calcType === 'vat_pct') {
+              const base = Number(venue.baseFeeEur) || 0;
+              const fbSubtotal = (Number(venue.fbPerPersonEur) || 0) * this.guestCount;
+              const fixedAndGuest = venue.flags
+                .filter((f) => f.type === 'risk' && f.active && f.calcType !== 'vat_pct' && f.calcType !== 'vendor_vat_pct')
+                .reduce(
+                  (sum, f) =>
+                    sum + (f.calcType === 'per_guest' ? (Number(f.amount) || 0) * this.guestCount : Number(f.amount) || 0),
+                  0
+                );
+              return ((base + fbSubtotal + fixedAndGuest) * (Number(flag.amount) || 0)) / 100;
+            }
+            return 0;
+          },
+
+          calculateBreakdown(venue) {
+            const baseFeeEur = Number(venue.baseFeeEur) || 0;
+            const fbPerPersonEur = Number(venue.fbPerPersonEur) || 0;
+            const fbSubtotalEur = fbPerPersonEur * this.guestCount;
+            let fixedAndGuestExtrasEur = 0;
+            let vendorVatExtrasEur = 0;
+            let vatAmountEur = 0;
+
+            venue.flags.forEach((flag) => {
+              if (flag.type === 'risk' && flag.active) {
+                if (flag.calcType === 'fixed') {
+                  fixedAndGuestExtrasEur += Number(flag.amount) || 0;
+                } else if (flag.calcType === 'per_guest') {
+                  fixedAndGuestExtrasEur += (Number(flag.amount) || 0) * this.guestCount;
+                } else if (flag.calcType === 'vendor_vat_pct') {
+                  const vBase = (Number(flag.vendorBaseEur) || 0) + (Number(flag.vendorPerGuestEur) || 0) * this.guestCount;
+                  vendorVatExtrasEur += (vBase * (Number(flag.amount) || 0)) / 100;
+                }
+              }
+            });
+
+            const taxableBaseEur = baseFeeEur + fbSubtotalEur + fixedAndGuestExtrasEur;
+
+            venue.flags.forEach((flag) => {
+              if (flag.type === 'risk' && flag.active && flag.calcType === 'vat_pct') {
+                vatAmountEur += (taxableBaseEur * (Number(flag.amount) || 0)) / 100;
+              }
+            });
+
+            const hiddenExtrasTotalEur = fixedAndGuestExtrasEur + vendorVatExtrasEur + vatAmountEur;
+            const turnkeyTotalEur = baseFeeEur + fbSubtotalEur + hiddenExtrasTotalEur;
+            const effectivePerGuestEur = turnkeyTotalEur / Math.max(1, this.guestCount);
+
+            return {
+              fbSubtotalEur,
+              fixedAndGuestExtrasEur,
+              vatAmountEur,
+              hiddenExtrasTotalEur,
+              turnkeyTotalEur,
+              effectivePerGuestEur,
+            };
+          },
+
+          getBudgetDistribution(venue) {
+            const b = this.calculateBreakdown(venue);
+            const total = b.turnkeyTotalEur;
+            if (!total || total <= 0) {
+              return { basePct: 0, fbPct: 0, extrasPct: 0 };
+            }
+            const baseFee = Math.max(0, Number(venue.baseFeeEur) || 0);
+            const fb = Math.max(0, b.fbSubtotalEur);
+            const extras = Math.max(0, b.hiddenExtrasTotalEur);
+            const basePct = (baseFee / total) * 100;
+            const fbPct = (fb / total) * 100;
+            const extrasPct = Math.max(0, 100 - basePct - fbPct);
+            return {
+              basePct: Math.round(basePct * 10) / 10,
+              fbPct: Math.round(fbPct * 10) / 10,
+              extrasPct: Math.round(extrasPct * 10) / 10,
+              baseShare: Math.round(basePct),
+              fbShare: Math.round(fbPct),
+              extrasShare: Math.round(extrasPct),
+            };
+          },
+
+          getLowestTotalEur() {
+            if (!this.venues.length) return 0;
+            return Math.min(...this.venues.map((v) => this.calculateBreakdown(v).turnkeyTotalEur));
+          },
+
+          getDeltaFromLowest(venue) {
+            const total = this.calculateBreakdown(venue).turnkeyTotalEur;
+            return total - this.getLowestTotalEur();
+          },
+
+          isBestValue(venue) {
+            if (this.venues.length < 2) return false;
+            return Math.round(this.getDeltaFromLowest(venue)) === 0;
+          },
+
+          resolveFlagCategory(flag) {
+            if (!flag) return 'other';
+            if (flag.category && CANONICAL_CATEGORY_ORDER.includes(flag.category)) {
+              return flag.category;
+            }
+            if (flag.vendorCategory && CANONICAL_CATEGORY_ORDER.includes(flag.vendorCategory)) {
+              return flag.vendorCategory;
+            }
+            if (flag.calcType === 'vat_pct') {
+              return 'tax';
+            }
+            const text = `${flag.label?.tr || ''} ${flag.label?.en || ''} ${flag.detail?.tr || ''} ${flag.detail?.en || ''}`.toLowerCase();
+            const searchOrder = ['tax', 'catering', 'music', 'floral', 'boat', 'photo'];
+            for (const cat of searchOrder) {
+              const meta = VENDOR_CATEGORY_META[cat];
+              if (meta && meta.keywords.some((kw) => text.includes(kw))) {
+                return cat;
+              }
+            }
+            return 'other';
+          },
+
+          getActiveComparisonCategories() {
+            const present = new Set();
+            this.venues.forEach((v) => {
+              (v.flags || []).forEach((f) => {
+                present.add(this.resolveFlagCategory(f));
+              });
+            });
+            return CANONICAL_CATEGORY_ORDER.filter((cat) => present.has(cat));
+          },
+
+          getVenueFlagsByCategory(venue, category) {
+            return (venue.flags || []).filter((f) => this.resolveFlagCategory(f) === category);
+          },
+
+          openAddFlagForCategory(venueId, category) {
+            const venue = this.venues.find((v) => v.id === venueId);
+            if (!venue) return;
+            venue.newFlag = {
+              label: '',
+              calcType: category === 'tax' ? 'vat_pct' : 'fixed',
+              amount: '',
+              category: CANONICAL_CATEGORY_ORDER.includes(category) ? category : '',
+            };
+            venue.showAddFlag = true;
+          },
+
+          toggleFlag(venueId, flagId) {
+            const venue = this.venues.find((v) => v.id === venueId);
+            if (!venue) return;
+            const flag = venue.flags.find((f) => f.id === flagId);
+            if (!flag || flag.type !== 'risk') return;
+            flag.active = !flag.active;
+            if (flag.active && flag.replacedBy) {
+              flag.replacedBy = '';
+            }
+          },
+
+          removeFlag(venueId, flagId) {
+            const venue = this.venues.find((v) => v.id === venueId);
+            if (!venue) return;
+            venue.flags = venue.flags.filter((f) => f.id !== flagId);
+          },
+
+          addCustomFlag(venueId) {
+            const venue = this.venues.find((v) => v.id === venueId);
+            if (!venue) return;
+            const labelText = (venue.newFlag.label || '').trim();
+            const amt = Number(venue.newFlag.amount);
+            if (!labelText || !Number.isFinite(amt) || amt < 0) return;
+
+            const calcType = venue.newFlag.calcType || 'fixed';
+            const chosenCategory = venue.newFlag.category;
+            const resolvedCategory =
+              chosenCategory && CANONICAL_CATEGORY_ORDER.includes(chosenCategory)
+                ? chosenCategory
+                : this.resolveFlagCategory({
+                    label: { tr: labelText, en: labelText },
+                    detail: { tr: '', en: '' },
+                    calcType,
+                  });
+
+            const suffix =
+              calcType === 'vat_pct'
+                ? `(+%${amt})`
+                : calcType === 'per_guest'
+                  ? `(+€${amt} / ${this.lang === 'tr' ? 'kişi' : 'guest'})`
+                  : `(+€${amt.toLocaleString('tr-TR')})`;
+
+            venue.flags.push({
+              id: 'custom-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+              category: resolvedCategory,
+              type: 'risk',
+              label: {
+                tr: `${labelText} ${suffix}`,
+                en: `${labelText} ${suffix}`,
+              },
+              detail: {
+                tr: 'Kullanıcı tarafından eklenen özel maliyet kalemi.',
+                en: 'Custom cost item added by user.',
+              },
+              calcType,
+              amount: amt,
+              active: true,
+            });
+
+            venue.newFlag = { label: '', calcType: 'fixed', amount: '', category: '' };
+            venue.showAddFlag = false;
+            this.refreshIcons();
+          },
+
+          removeVenue(venueId) {
+            this.venues = this.venues.filter((v) => v.id !== venueId);
+            this.refreshIcons();
+          },
+
+          mergeVenueInto(sourceId, targetId) {
+            if (!targetId || sourceId === targetId) return;
+            const source = this.venues.find((v) => v.id === sourceId);
+            const target = this.venues.find((v) => v.id === targetId);
+            if (!source || !target) return;
+
+            if (!target.name.trim() && source.name.trim()) {
+              target.name = source.name;
+              target.nameUnknown = false;
+            }
+            if ((Number(target.baseFeeEur) || 0) === 0 && (Number(source.baseFeeEur) || 0) > 0) {
+              target.baseFeeEur = source.baseFeeEur;
+            }
+            if ((Number(target.fbPerPersonEur) || 0) === 0 && (Number(source.fbPerPersonEur) || 0) > 0) {
+              target.fbPerPersonEur = source.fbPerPersonEur;
+            }
+            if (!target.uploadedPreviewUrl && source.uploadedPreviewUrl) {
+              target.uploadedPreviewUrl = source.uploadedPreviewUrl;
+            }
+            if (!target.realPhotoUrl && source.realPhotoUrl) {
+              target.realPhotoUrl = source.realPhotoUrl;
+              target.realPhotoSourceUrl = source.realPhotoSourceUrl || '';
+              target.realPhotoSourceLabel = source.realPhotoSourceLabel || '';
+              target.realPhotoError = Boolean(source.realPhotoError);
+              target.photoStatus = source.photoStatus || 'found';
+              target.photoQueryKey = source.photoQueryKey || '';
+            }
+
+            target.sourceLabel = {
+              tr: `${target.sourceLabel.tr} + ${source.sourceLabel.tr}`,
+              en: `${target.sourceLabel.en} + ${source.sourceLabel.en}`,
+            };
+
+            const existingLabels = new Set(target.flags.map((f) => f.label.tr.toLowerCase()));
+            source.flags.forEach((f) => {
+              if (!existingLabels.has(f.label.tr.toLowerCase())) {
+                target.flags.push({ ...f, id: f.id + '-m' });
+                existingLabels.add(f.label.tr.toLowerCase());
+              }
+            });
+
+            target.editing = true;
+            this.venues = this.venues.filter((v) => v.id !== sourceId);
+            if (!target.realPhotoUrl && (target.name || '').trim().length >= 2) {
+              this.fetchVenuePhoto(target.id, false);
+            }
+            this.refreshIcons();
+            this.showToast(this.t('toastMerged'));
+          },
+
+          addBlankManualVenue() {
+            const uid = 'manual-' + Date.now();
+            const keys = ['lakeVilla', 'bosphorusPalace', 'tuscanEstate', 'modernAtelier'];
+            this.venues.push({
+              id: uid,
+              name: '',
+              nameUnknown: true,
+              editing: true,
+              showAddFlag: false,
+              showUploadedPreview: false,
+              uploadedPreviewUrl: '',
+              realPhotoUrl: '',
+              realPhotoSourceUrl: '',
+              realPhotoSourceLabel: '',
+              realPhotoError: false,
+              photoStatus: 'idle',
+              photoQueryKey: '',
+              coverMode: 'auto',
+              coverKey: keys[this.venues.length % keys.length],
+              coverError: false,
+              newFlag: { label: '', calcType: 'fixed', amount: '', category: '' },
+              region: { tr: 'Şehir / Bölge', en: 'City / Region' },
+              venueType: { tr: 'Manuel Kart', en: 'Manual Card' },
+              capacityLabel: { tr: 'Düzenlenebilir', en: 'Editable' },
+              sourceLabel: { tr: 'Manuel eklenen teklif', en: 'Manually added quote' },
+              baseFeeEur: 0,
+              fbPerPersonEur: 0,
+              flags: [
+                {
+                  id: `${uid}-vat`,
+                  category: 'tax',
+                  type: 'risk',
+                  label: { tr: 'KDV Hariçtir (+%20)', en: 'VAT Excluded (+20%)' },
+                  detail: {
+                    tr: 'KDV hariç ise işaretli bırakın veya silin.',
+                    en: 'Keep active if VAT is excluded, or remove.',
+                  },
+                  calcType: 'vat_pct',
+                  amount: 20,
+                  active: false,
+                },
+              ],
+            });
+            this.refreshIcons();
+            this.showToast(this.t('toastBlankAdded'));
+            this.$nextTick(() => {
+              const target = document.getElementById('comparison-section');
+              if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+          },
+
+          resetDashboard() {
+            this.venues = [];
+            this.pendingVendorAddons = [];
+            this.batchQueue = [];
+            this.failedQueue = [];
+            this.refreshIcons();
+            this.showToast(this.t('toastReset'));
+          },
+
+          buildVendorAddonObject(v, fileName) {
+            const category = VENDOR_CATEGORY_META[v.vendorCategory] ? v.vendorCategory : 'other';
+            const vendorName = (v.name || '').trim();
+            const rawFlags = Array.isArray(v.flags) ? v.flags : [];
+
+            const serviceItems = rawFlags.filter((f) => f.type !== 'safe' && f.calcType !== 'vat_pct');
+            if (serviceItems.length === 0 && ((Number(v.baseFeeEur) || 0) > 0 || (Number(v.fbPerPersonEur) || 0) > 0)) {
+              if ((Number(v.baseFeeEur) || 0) > 0) {
+                serviceItems.push({
+                  type: 'risk',
+                  calcType: 'fixed',
+                  amount: Number(v.baseFeeEur),
+                  active: true,
+                  label: {
+                    tr: vendorName || VENDOR_CATEGORY_META[category].fullTitle.tr,
+                    en: vendorName || VENDOR_CATEGORY_META[category].fullTitle.en,
+                  },
+                  detail: v.originalCurrencyNote || { tr: 'Sabit hizmet paketi', en: 'Fixed service package' },
+                });
+              }
+              if ((Number(v.fbPerPersonEur) || 0) > 0) {
+                serviceItems.push({
+                  type: 'risk',
+                  calcType: 'per_guest',
+                  amount: Number(v.fbPerPersonEur),
+                  active: true,
+                  label: {
+                    tr: `${vendorName || VENDOR_CATEGORY_META[category].fullTitle.tr} (Kişi Başı)`,
+                    en: `${vendorName || VENDOR_CATEGORY_META[category].fullTitle.en} (Per Guest)`,
+                  },
+                  detail: v.originalCurrencyNote || { tr: 'Kişi başı hizmet bedeli', en: 'Per-guest service rate' },
+                });
+              }
+            }
+
+            let vendorTaxBaseFixed = 0;
+            let vendorTaxBasePerGuest = 0;
+            serviceItems.forEach((item) => {
+              if (item.calcType === 'per_guest') {
+                vendorTaxBasePerGuest += Number(item.amount) || 0;
+              } else {
+                vendorTaxBaseFixed += Number(item.amount) || 0;
+              }
+            });
+
+            if (vendorTaxBaseFixed === 0 && vendorTaxBasePerGuest === 0) {
+              vendorTaxBaseFixed = Number(v.baseFeeEur) || 0;
+              vendorTaxBasePerGuest = Number(v.fbPerPersonEur) || 0;
+            }
+
+            const vatItems = rawFlags
+              .filter((f) => f.type !== 'safe' && f.calcType === 'vat_pct')
+              .map((f) => ({
+                ...f,
+                calcType: 'vendor_vat_pct',
+                vendorBaseEur: vendorTaxBaseFixed,
+                vendorPerGuestEur: vendorTaxBasePerGuest,
+              }));
+
+            const safeItems = rawFlags.filter((f) => f.type === 'safe');
+
+            return {
+              id: 'addon-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+              vendorCategory: category,
+              vendorName,
+              targetVenueHint: (v.targetVenueHint || '').trim(),
+              fileName,
+              region: v.region || { tr: 'Dış Hizmet', en: 'External Vendor' },
+              venueType: v.venueType || VENDOR_CATEGORY_META[category].fullTitle,
+              originalCurrencyNote: v.originalCurrencyNote || { tr: '', en: '' },
+              baseFeeEur: vendorTaxBaseFixed,
+              fbPerPersonEur: vendorTaxBasePerGuest,
+              rawFlags,
+              itemizedFlags: [...serviceItems, ...vatItems, ...safeItems],
+            };
+          },
+
+          estimateAddonTotalEur(addon) {
+            let total = 0;
+            addon.itemizedFlags.forEach((f) => {
+              if (f.type === 'risk' && f.active) {
+                if (f.calcType === 'fixed') total += Number(f.amount) || 0;
+                else if (f.calcType === 'per_guest') total += (Number(f.amount) || 0) * this.guestCount;
+                else if (f.calcType === 'vendor_vat_pct') {
+                  const base = (Number(f.vendorBaseEur) || 0) + (Number(f.vendorPerGuestEur) || 0) * this.guestCount;
+                  total += (base * (Number(f.amount) || 0)) / 100;
+                }
+              }
+            });
+            return total;
+          },
+
+          findMatchedVenueId(targetVenueHint) {
+            const hint = normalizeMatchText(targetVenueHint);
+            if (!hint || hint.length < 3) return null;
+            const matches = this.venues.filter((v) => {
+              const vName = normalizeMatchText(v.name);
+              return vName.length >= 3 && (vName.includes(hint) || hint.includes(vName));
+            });
+            return matches.length === 1 ? matches[0].id : null;
+          },
+
+          venueIncludesCategory(venue, vendorCategory) {
+            const meta = VENDOR_CATEGORY_META[vendorCategory];
+            if (!meta || meta.keywords.length === 0) return false;
+            return venue.flags.some((flag) => {
+              if (flag.type !== 'safe') return false;
+              const text = `${flag.label?.tr || ''} ${flag.label?.en || ''} ${flag.detail?.tr || ''} ${flag.detail?.en || ''}`.toLowerCase();
+              return meta.keywords.some((kw) => text.includes(kw));
+            });
+          },
+
+          attachVendorToVenue(addon, venueId) {
+            const venue = this.venues.find((v) => v.id === venueId);
+            if (!venue) return;
+
+            const meta = VENDOR_CATEGORY_META[addon.vendorCategory] || VENDOR_CATEGORY_META.other;
+            const sourceTag = addon.vendorName ? `${addon.vendorName} (${addon.fileName})` : addon.fileName;
+
+            if (meta.keywords.length > 0) {
+              venue.flags.forEach((existingFlag) => {
+                if (existingFlag.type === 'risk' && existingFlag.active && !existingFlag.vendorCategory) {
+                  const text = `${existingFlag.label?.tr || ''} ${existingFlag.label?.en || ''} ${existingFlag.detail?.tr || ''} ${existingFlag.detail?.en || ''}`.toLowerCase();
+                  if (meta.keywords.some((kw) => text.includes(kw))) {
+                    existingFlag.active = false;
+                    existingFlag.replacedBy = sourceTag;
+                  }
+                }
+              });
+            }
+
+            const stamp = Date.now() + '-' + Math.random().toString(36).slice(2, 5);
+            addon.itemizedFlags.forEach((f, idx) => {
+              venue.flags.push({
+                id: `${venue.id}-v-${stamp}-${idx}`,
+                type: f.type === 'safe' ? 'safe' : 'risk',
+                vendorCategory: addon.vendorCategory,
+                vendorSourceFile: addon.fileName,
+                vendorName: addon.vendorName,
+                label: f.label || { tr: meta.fullTitle.tr, en: meta.fullTitle.en },
+                detail: f.detail || { tr: '', en: '' },
+                calcType: f.calcType || 'fixed',
+                amount: Number(f.amount) || 0,
+                vendorBaseEur: Number(f.vendorBaseEur) || 0,
+                vendorPerGuestEur: Number(f.vendorPerGuestEur) || 0,
+                active: f.type === 'safe' ? false : Boolean(f.active),
+              });
+            });
+
+            this.refreshIcons();
+          },
+
+          assignPendingToSingle(pendingId, venueId) {
+            const addon = this.pendingVendorAddons.find((p) => p.id === pendingId);
+            if (!addon) return;
+            this.attachVendorToVenue(addon, venueId);
+            this.pendingVendorAddons = this.pendingVendorAddons.filter((p) => p.id !== pendingId);
+            this.showToast(this.t('toastVendorAssigned'));
+          },
+
+          assignPendingToMissing(pendingId) {
+            const addon = this.pendingVendorAddons.find((p) => p.id === pendingId);
+            if (!addon || this.venues.length === 0) return;
+            const targets = this.venues.filter((v) => !this.venueIncludesCategory(v, addon.vendorCategory));
+            if (targets.length === 0) {
+              this.showToast(this.t('toastVendorMissingNoMatch'));
+              return;
+            }
+            targets.forEach((v) => this.attachVendorToVenue(addon, v.id));
+            this.pendingVendorAddons = this.pendingVendorAddons.filter((p) => p.id !== pendingId);
+            this.showToast(`${this.getCategoryBadge(addon.vendorCategory)} — ${targets.length} ${this.t('toastVendorAssignedCount')}`);
+          },
+
+          assignPendingToAll(pendingId) {
+            const addon = this.pendingVendorAddons.find((p) => p.id === pendingId);
+            if (!addon || this.venues.length === 0) return;
+            this.venues.forEach((v) => this.attachVendorToVenue(addon, v.id));
+            this.pendingVendorAddons = this.pendingVendorAddons.filter((p) => p.id !== pendingId);
+            this.showToast(`${this.getCategoryBadge(addon.vendorCategory)} — ${this.venues.length} ${this.t('toastVendorAssignedCount')}`);
+          },
+
+          convertPendingToStandalone(pendingId) {
+            const addon = this.pendingVendorAddons.find((p) => p.id === pendingId);
+            if (!addon) return;
+            const uid = 'standalone-' + Date.now();
+            const isUnknown = !addon.vendorName;
+            this.venues.push({
+              id: uid,
+              name: addon.vendorName || '',
+              nameUnknown: isUnknown,
+              editing: false,
+              showAddFlag: false,
+              showUploadedPreview: false,
+              uploadedPreviewUrl: '',
+              realPhotoUrl: '',
+              realPhotoSourceUrl: '',
+              realPhotoSourceLabel: '',
+              realPhotoError: false,
+              photoStatus: 'idle',
+              photoQueryKey: '',
+              coverMode: 'auto',
+              coverKey: 'modernAtelier',
+              coverError: false,
+              newFlag: { label: '', calcType: 'fixed', amount: '', category: '' },
+              region: addon.region,
+              venueType: addon.venueType,
+              capacityLabel: { tr: 'Bağımsız Hizmet', en: 'Standalone Service' },
+              sourceLabel: {
+                tr: `Dosya: ${addon.fileName}${addon.originalCurrencyNote?.tr ? ' · ' + addon.originalCurrencyNote.tr : ''}`,
+                en: `File: ${addon.fileName}${addon.originalCurrencyNote?.en ? ' · ' + addon.originalCurrencyNote.en : ''}`,
+              },
+              baseFeeEur: addon.baseFeeEur,
+              fbPerPersonEur: addon.fbPerPersonEur,
+              flags: addon.rawFlags
+                .filter((f) => f.calcType === 'vat_pct' || f.type === 'safe')
+                .map((f, idx) => ({
+                  id: `${uid}-f-${idx}`,
+                  category: CANONICAL_CATEGORY_ORDER.includes(f.category) ? f.category : undefined,
+                  type: f.type === 'safe' ? 'safe' : 'risk',
+                  label: f.label,
+                  detail: f.detail,
+                  calcType: f.calcType,
+                  amount: Number(f.amount) || 0,
+                  active: Boolean(f.active),
+                })),
+            });
+            this.pendingVendorAddons = this.pendingVendorAddons.filter((p) => p.id !== pendingId);
+            if (!isUnknown && addon.vendorName) {
+              this.fetchVenuePhoto(uid, false);
+            }
+            this.refreshIcons();
+            this.showToast(this.t('toastVendorStandalone'));
+          },
+
+          dismissPendingVendor(pendingId) {
+            this.pendingVendorAddons = this.pendingVendorAddons.filter((p) => p.id !== pendingId);
+          },
+
+          handleDrop(event) {
+            this.isDragging = false;
+            const files = Array.from(event.dataTransfer?.files || []);
+            if (files.length > 0) {
+              this.processUploadedFiles(files, null);
+            }
+          },
+
+          handleFileInput(event) {
+            const files = Array.from(event.target?.files || []);
+            if (files.length > 0) {
+              this.processUploadedFiles(files, null);
+              event.target.value = '';
+            }
+          },
+
+          handleCardDrop(event, venueId) {
+            const files = Array.from(event.dataTransfer?.files || []);
+            if (files.length > 0) {
+              this.processUploadedFiles(files, venueId);
+            }
+          },
+
+          handleCardFileInput(event, venueId) {
+            const files = Array.from(event.target?.files || []);
+            if (files.length > 0) {
+              this.processUploadedFiles(files, venueId);
+              event.target.value = '';
+            }
+          },
+
+          async processUploadedFiles(files, targetVenueId = null) {
+            if (this.isScanning || this.cardScanningId) return;
+
+            if (targetVenueId) {
+              this.cardScanningId = targetVenueId;
+            } else {
+              this.isScanning = true;
+              this.batchQueue = files.map((file) => ({
+                name: file.name,
+                status: 'pending',
+                error: '',
+              }));
+            }
+
+            let venueAddedCount = 0;
+            let vendorAutoAttachedCount = 0;
+            let vendorQueuedCount = 0;
+            let hasError = false;
+            let lastAutoAttachMsg = '';
+
+            for (let i = 0; i < files.length; i++) {
+              const file = files[i];
+              if (!targetVenueId && this.batchQueue[i]) {
+                this.batchQueue[i].status = 'scanning';
+              }
+
+              try {
+                const base64Data = await readFileAsBase64(file);
+                const mimeType = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/png');
+                const isImageFile = mimeType.startsWith('image/');
+                const uploadedPreviewUrl = isImageFile ? `data:${mimeType};base64,${base64Data}` : '';
+
+                const resp = await fetch('/api/decode-quote', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    fileName: file.name,
+                    mimeType,
+                    base64Data,
+                  }),
+                });
+
+                const payload = await resp.json();
+                if (!resp.ok || !payload.venue) {
+                  throw new Error(payload.error || 'AI decode failed');
+                }
+
+                const v = payload.venue;
+
+                if (targetVenueId) {
+                  const addon = this.buildVendorAddonObject(v, file.name);
+                  this.attachVendorToVenue(addon, targetVenueId);
+                  vendorAutoAttachedCount += 1;
+                } else if (v.docCategory === 'vendor_addon') {
+                  const addon = this.buildVendorAddonObject(v, file.name);
+                  const matchedId = this.findMatchedVenueId(addon.targetVenueHint);
+
+                  if (matchedId) {
+                    const matchedVenue = this.venues.find((x) => x.id === matchedId);
+                    this.attachVendorToVenue(addon, matchedId);
+                    vendorAutoAttachedCount += 1;
+                    lastAutoAttachMsg = `${this.getCategoryBadge(addon.vendorCategory)} ${this.t('toastVendorAutoMatched')} ${this.displayVenueName(matchedVenue)}`;
+                  } else {
+                    this.pendingVendorAddons.push(addon);
+                    vendorQueuedCount += 1;
+                  }
+                } else {
+                  const uid = 'uploaded-' + Date.now() + '-' + i;
+                  const parsedName = (v.name || '').trim();
+                  const isUnknown = v.nameFound === false || parsedName.length === 0;
+                  const regionObj = v.region || { tr: 'Belirtilmedi', en: 'Unspecified' };
+                  const typeObj = v.venueType || { tr: 'Yüklenen Teklif', en: 'Uploaded Quote' };
+
+                  const normalizedVenue = {
+                    id: uid,
+                    name: isUnknown ? '' : parsedName,
+                    nameUnknown: isUnknown,
+                    editing: false,
+                    showAddFlag: false,
+                    showUploadedPreview: false,
+                    uploadedPreviewUrl,
+                    realPhotoUrl: '',
+                    realPhotoSourceUrl: '',
+                    realPhotoSourceLabel: '',
+                    realPhotoError: false,
+                    photoStatus: 'idle',
+                    photoQueryKey: '',
+                    coverMode: 'auto',
+                    coverKey: this.resolveCoverKey(regionObj, typeObj, parsedName, this.venues.length + i),
+                    coverError: false,
+                    newFlag: { label: '', calcType: 'fixed', amount: '', category: '' },
+                    region: regionObj,
+                    venueType: typeObj,
+                    capacityLabel: v.capacityLabel || { tr: 'Kapasite Belirtilmedi', en: 'Capacity Unspecified' },
+                    sourceLabel: {
+                      tr: `Dosya: ${file.name}${v.originalCurrencyNote?.tr ? ' · ' + v.originalCurrencyNote.tr : ''}`,
+                      en: `File: ${file.name}${v.originalCurrencyNote?.en ? ' · ' + v.originalCurrencyNote.en : ''}`,
+                    },
+                    baseFeeEur: Number(v.baseFeeEur) || 0,
+                    fbPerPersonEur: Number(v.fbPerPersonEur) || 0,
+                    flags: Array.isArray(v.flags)
+                      ? v.flags.map((f, fIdx) => ({
+                          id: `${uid}-flag-${fIdx}`,
+                          category: CANONICAL_CATEGORY_ORDER.includes(f.category) ? f.category : undefined,
+                          type: f.type === 'safe' ? 'safe' : 'risk',
+                          label: f.label || { tr: 'Ek Kalem', en: 'Additional Item' },
+                          detail: f.detail || { tr: '', en: '' },
+                          calcType: ['fixed', 'per_guest', 'vat_pct'].includes(f.calcType) ? f.calcType : 'fixed',
+                          amount: Number(f.amount) || 0,
+                          active: Boolean(f.active),
+                        }))
+                      : [],
+                  };
+
+                  this.venues.push(normalizedVenue);
+                  if (!isUnknown && parsedName.length >= 2) {
+                    this.fetchVenuePhoto(normalizedVenue.id, false);
+                  }
+                  venueAddedCount += 1;
+                }
+
+                if (!targetVenueId && this.batchQueue[i]) {
+                  this.batchQueue[i].status = 'done';
+                }
+                this.failedQueue = this.failedQueue.filter((f) => f.name !== file.name);
+              } catch (err) {
+                hasError = true;
+                const errMsg = err instanceof Error ? err.message : 'Error';
+                if (!targetVenueId && this.batchQueue[i]) {
+                  this.batchQueue[i].status = 'error';
+                  this.batchQueue[i].error = errMsg;
+                }
+                const existingFailed = this.failedQueue.find((f) => f.name === file.name);
+                if (!existingFailed) {
+                  this.failedQueue.push({ name: file.name, file, error: errMsg, targetVenueId });
+                } else {
+                  existingFailed.error = errMsg;
+                  existingFailed.targetVenueId = targetVenueId;
+                }
+              }
+            }
+
+            setTimeout(() => {
+              this.isScanning = false;
+              this.cardScanningId = null;
+              this.refreshIcons();
+
+              if (targetVenueId && vendorAutoAttachedCount > 0) {
+                this.showToast(this.t('toastVendorAssigned'));
+              } else if (lastAutoAttachMsg) {
+                this.showToast(lastAutoAttachMsg);
+              } else if (venueAddedCount > 0) {
+                this.showToast(`${venueAddedCount} ${this.t('toastVenueAdded')}`);
+                const target = document.getElementById('comparison-section');
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              } else if (vendorQueuedCount > 0) {
+                const assignBar = document.getElementById('vendor-assignment-bar');
+                if (assignBar) assignBar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+              } else if (hasError) {
+                this.showToast(this.t('toastParseError'));
+              }
+            }, 300);
+          },
+
+          retryFailedFile(index) {
+            const entry = this.failedQueue[index];
+            if (!entry || !entry.file) return;
+            const fileToRetry = entry.file;
+            const targetId = entry.targetVenueId || null;
+            this.failedQueue.splice(index, 1);
+            this.processUploadedFiles([fileToRetry], targetId);
+          },
+
+          addManualFromFailed(index) {
+            const entry = this.failedQueue[index];
+            if (!entry) return;
+            const uid = 'manual-' + Date.now() + '-' + index;
+            const keys = ['lakeVilla', 'bosphorusPalace', 'tuscanEstate', 'modernAtelier'];
+            this.venues.push({
+              id: uid,
+              name: '',
+              nameUnknown: true,
+              editing: true,
+              showAddFlag: false,
+              showUploadedPreview: false,
+              uploadedPreviewUrl: '',
+              realPhotoUrl: '',
+              realPhotoSourceUrl: '',
+              realPhotoSourceLabel: '',
+              realPhotoError: false,
+              photoStatus: 'idle',
+              photoQueryKey: '',
+              coverMode: 'auto',
+              coverKey: keys[this.venues.length % keys.length],
+              coverError: false,
+              newFlag: { label: '', calcType: 'fixed', amount: '', category: '' },
+              region: { tr: 'Manuel Giriş', en: 'Manual Entry' },
+              venueType: { tr: 'Yüklenen Teklif', en: 'Uploaded Quote' },
+              capacityLabel: { tr: 'Düzenlenebilir', en: 'Editable' },
+              sourceLabel: {
+                tr: `Dosya: ${entry.name} · Rakamları girin`,
+                en: `File: ${entry.name} · Enter figures`,
+              },
+              baseFeeEur: 0,
+              fbPerPersonEur: 0,
+              flags: [
+                {
+                  id: `${uid}-vat`,
+                  type: 'risk',
+                  label: { tr: 'KDV Hariçtir (+%20)', en: 'VAT Excluded (+20%)' },
+                  detail: {
+                    tr: 'Teklifte KDV hariç belirtildiyse açık bırakın.',
+                    en: 'Keep active if your quote excludes VAT.',
+                  },
+                  calcType: 'vat_pct',
+                  amount: 20,
+                  active: false,
+                },
+              ],
+            });
+            this.failedQueue.splice(index, 1);
+            this.refreshIcons();
+            const target = document.getElementById('comparison-section');
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          },
+
+          buildShareableSummaryText() {
+            const lines = [];
+            if (this.lang === 'tr') {
+              lines.push('WEDDING QUOTE DECODER — KARŞILAŞTIRMA ÖZETİ');
+              lines.push(
+                `Misafir Sayısı: ${this.guestCount} Kişi | Para Birimi: ${this.currency} (1 € = ${this.exchangeRate.toFixed(2).replace('.', ',')} ₺)`
+              );
+            } else {
+              lines.push('WEDDING QUOTE DECODER — COMPARISON SUMMARY');
+              lines.push(
+                `Guest Count: ${this.guestCount} Guests | Currency: ${this.currency} (1 € = ${this.exchangeRate.toFixed(2)} ₺)`
+              );
+            }
+            lines.push('------------------------------------------------------------');
+
+            this.venues.forEach((v, idx) => {
+              const b = this.calculateBreakdown(v);
+              const activeRisks = v.flags.filter((f) => f.type === 'risk' && f.active).map((f) => f.label[this.lang]);
+              lines.push(`${idx + 1}. ${this.displayVenueName(v)} (${v.region[this.lang]})`);
+              if (this.lang === 'tr') {
+                lines.push(`   • Mekan Kirası: ${this.formatCurrency(v.baseFeeEur)}`);
+                lines.push(
+                  `   • Kişi Başı F&B (${this.guestCount} kişi): ${this.formatCurrency(v.fbPerPersonEur)} -> ${this.formatCurrency(b.fbSubtotalEur)}`
+                );
+                lines.push(`   • Seçili Ek Hizmetler, Gizli Ekler & KDV: ${this.formatCurrency(b.hiddenExtrasTotalEur)}`);
+                lines.push(
+                  `   • Anahtar Teslim Toplam: ${this.formatCurrency(b.turnkeyTotalEur)} (${this.formatCurrency(b.effectivePerGuestEur)} / kişi)`
+                );
+                if (activeRisks.length > 0) {
+                  lines.push(`   • Dahil Edilen Kalemler: ${activeRisks.join('; ')}`);
+                }
+              } else {
+                lines.push(`   • Venue Rental: ${this.formatCurrency(v.baseFeeEur)}`);
+                lines.push(
+                  `   • Per-Guest F&B (${this.guestCount} guests): ${this.formatCurrency(v.fbPerPersonEur)} -> ${this.formatCurrency(b.fbSubtotalEur)}`
+                );
+                lines.push(`   • Selected Add-Ons, Hidden Costs & VAT: ${this.formatCurrency(b.hiddenExtrasTotalEur)}`);
+                lines.push(
+                  `   • Turnkey Total: ${this.formatCurrency(b.turnkeyTotalEur)} (${this.formatCurrency(b.effectivePerGuestEur)} / guest)`
+                );
+                if (activeRisks.length > 0) {
+                  lines.push(`   • Included Line Items: ${activeRisks.join('; ')}`);
+                }
+              }
+              lines.push('');
+            });
+
+            return lines.join('\n');
+          },
+
+          copySummaryToClipboard() {
+            const text = this.buildShareableSummaryText();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(() => {
+                this.copiedSummary = true;
+                setTimeout(() => {
+                  this.copiedSummary = false;
+                }, 2500);
+              });
+            }
+          },
+        };
+      }
+    </script>
+
+    <!-- Alpine.js & Lucide Icons via CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+  </head>
+
+  <body x-data="weddingQuoteApp()" x-init="init()" class="min-h-screen silk-ambient-canvas bg-pearl text-obsidian selection:bg-obsidian selection:text-pearl">
+    <!-- Toast Notification -->
+    <div
+      x-show="toastVisible"
+      x-cloak
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0 translate-y-2"
+      x-transition:enter-end="opacity-100 translate-y-0"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100 translate-y-0"
+      x-transition:leave-end="opacity-0 translate-y-2"
+      class="fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-full border border-champagne/40 bg-obsidian px-5 py-3 text-sm text-pearl shadow-atelier no-print"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="text-pearl/95" x-text="toastMessage"></span>
+    </div>
+
+    <!-- Top Navigation Bar (Strict 3-Zone Contract) -->
+    <header class="border-b border-champagne-soft/80 bg-pearl/70 backdrop-blur-md">
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-8 px-5 py-4 sm:px-8">
+        <!-- Zone 1: Single-element Brand Wordmark -->
+        <a
+          href="#"
+          class="font-serif text-xl font-semibold tracking-tight text-obsidian whitespace-nowrap shrink-0 sm:text-2xl"
+        >
+          Wedding Quote Decoder
+        </a>
+
+        <!-- Zone 2: Concise Single-Line Navigation Links -->
+        <nav aria-label="Ana gezinme" class="hidden md:flex items-center gap-7 text-sm font-medium text-stone">
+          <a href="#upload-hero" class="hover:text-obsidian transition-colors whitespace-nowrap shrink-0" x-text="t('navUpload')"></a>
+          <a href="#comparison-section" class="hover:text-obsidian transition-colors whitespace-nowrap shrink-0" x-text="t('navCompare')"></a>
+        </nav>
+
+        <!-- Zone 3: Single Primary Action -->
+        <div class="flex items-center shrink-0">
+          <button
+            type="button"
+            @click="showSummaryModal = true; refreshIcons()"
+            :disabled="venues.length === 0"
+            class="inline-flex items-center gap-2 rounded-full bg-obsidian px-5 py-2.5 text-xs font-semibold text-pearl shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-obsidian/90 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:translate-y-0 whitespace-nowrap shrink-0 sm:text-sm"
+          >
+            <i data-lucide="share-2" class="h-3.5 w-3.5"></i>
+            <span x-text="t('shareSummaryCta')"></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- 1. Hero Section & Floating Glass Atelier Dropzone -->
+      <section id="upload-hero" class="mx-auto max-w-7xl px-5 pt-8 pb-9 sm:px-8 sm:pt-12 sm:pb-11">
+        <div class="mb-5 flex items-center justify-between gap-4">
+          <p class="text-xs font-medium tracking-[0.18em] uppercase text-stone" x-text="t('heroKicker')"></p>
+
+          <div
+            class="inline-flex items-center rounded-full border border-champagne-line bg-white/80 p-1 backdrop-blur-sm shrink-0"
+            role="group"
+            aria-label="Dil Seçimi / Language Selection"
+          >
+            <button
+              type="button"
+              @click="setLang('tr')"
+              :class="lang === 'tr' ? 'bg-obsidian text-pearl shadow-sm' : 'text-stone hover:text-obsidian'"
+              class="rounded-full px-3.5 py-1 text-xs font-semibold transition-all duration-200 whitespace-nowrap shrink-0"
+            >
+              TR
+            </button>
+            <button
+              type="button"
+              @click="setLang('en')"
+              :class="lang === 'en' ? 'bg-obsidian text-pearl shadow-sm' : 'text-stone hover:text-obsidian'"
+              class="rounded-full px-3.5 py-1 text-xs font-semibold transition-all duration-200 whitespace-nowrap shrink-0"
+            >
+              EN
+            </button>
+          </div>
+        </div>
+
+        <div class="mx-auto max-w-3xl text-center">
+          <h1
+            class="font-serif text-4xl font-medium tracking-tight text-obsidian text-balance sm:text-5xl lg:text-[3.35rem] lg:leading-[1.06]"
+            x-text="t('heroTitle')"
+          ></h1>
+          <p
+            class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-stone sm:text-base"
+            x-text="t('heroSubtitle')"
+          ></p>
+        </div>
+
+        <!-- Floating Glass Atelier Card Dropzone -->
+        <div
+          class="relative mx-auto mt-8 max-w-5xl rounded-[28px] border bg-white/85 p-7 backdrop-blur-xl transition-all duration-200 sm:p-11"
+          :class="isDragging ? 'border-champagne ring-2 ring-champagne/40 shadow-glow scale-[1.005]' : 'border-champagne-line shadow-atelier hover:border-champagne/70 hover:shadow-glow'"
+          @dragover.prevent="isDragging = true"
+          @dragleave.prevent="isDragging = false"
+          @drop.prevent="handleDrop($event)"
+        >
+          <input
+            type="file"
+            id="quoteFileInput"
+            multiple
+            class="sr-only"
+            accept=".pdf,.png,.jpg,.jpeg,.webp"
+            @change="handleFileInput($event)"
+          />
+
+          <!-- Idle / Ready Dropzone State -->
+          <div x-show="!isScanning" class="flex flex-col items-center text-center">
+            <!-- Curated Dual-Icon Emblem inside Blush-Gold Pill -->
+            <div class="inline-flex items-center gap-2 rounded-full border border-champagne-line bg-gradient-to-br from-blush to-[#F3E8E2] px-4 py-2.5 text-obsidian shadow-sm">
+              <i data-lucide="sparkles" class="h-4 w-4 text-champagne"></i>
+              <span class="h-3.5 w-px bg-champagne-line" aria-hidden="true"></span>
+              <i data-lucide="image" class="h-4 w-4 text-obsidian"></i>
+            </div>
+
+            <p
+              class="mt-5 max-w-2xl font-serif text-xl font-medium leading-snug text-obsidian sm:text-[1.65rem] text-balance"
+              x-text="t('dropzoneCopy')"
+            ></p>
+
+            <p class="mt-2.5 text-xs text-stone" x-text="t('dropzoneFormats')"></p>
+
+            <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
+              <label
+                for="quoteFileInput"
+                class="inline-flex cursor-pointer items-center gap-2.5 rounded-full bg-obsidian px-6 py-3 text-sm font-medium text-pearl shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-obsidian/92 hover:shadow-lg whitespace-nowrap shrink-0"
+              >
+                <i data-lucide="upload" class="h-4 w-4 text-champagne"></i>
+                <span x-text="t('btnChooseFile')"></span>
+              </label>
+
+              <button
+                type="button"
+                @click="addBlankManualVenue()"
+                class="inline-flex items-center gap-2 rounded-full border border-champagne-line bg-white/75 px-5 py-3 text-sm font-medium text-obsidian backdrop-blur-md transition-all duration-200 hover:border-champagne hover:bg-white whitespace-nowrap shrink-0"
+              >
+                <span x-text="t('btnAddBlankVenue')"></span>
+              </button>
+
+              <button
+                type="button"
+                x-show="venues.length > 0 || pendingVendorAddons.length > 0"
+                @click="resetDashboard()"
+                class="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-medium text-stone transition-colors hover:bg-peony-bg hover:text-peony whitespace-nowrap shrink-0"
+              >
+                <span x-text="t('btnReset')"></span>
+              </button>
+            </div>
+
+            <!-- Failed Files Recovery List -->
+            <div
+              x-show="failedQueue.length > 0"
+              x-cloak
+              class="mt-7 w-full max-w-2xl rounded-2xl border border-[#FECDD3] bg-peony-bg/70 p-4 text-left"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-xs font-semibold text-peony" x-text="t('failedHeading')"></p>
+                <button
+                  type="button"
+                  @click="failedQueue = []"
+                  class="text-[11px] font-medium text-stone hover:text-obsidian"
+                  x-text="t('btnDismissFailed')"
+                ></button>
+              </div>
+              <ul class="mt-3 space-y-2.5">
+                <template x-for="(fItem, fIdx) in failedQueue" :key="fItem.name + fIdx">
+                  <li class="flex flex-col gap-2 rounded-xl border border-champagne-soft bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="min-w-0">
+                      <div class="truncate text-xs font-semibold text-obsidian" x-text="fItem.name"></div>
+                      <div class="mt-0.5 text-[11px] text-peony" x-text="fItem.error"></div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        @click="retryFailedFile(fIdx)"
+                        class="rounded-full bg-obsidian px-3.5 py-1.5 text-xs font-medium text-pearl transition-colors hover:bg-obsidian/90 whitespace-nowrap shrink-0"
+                        x-text="t('btnRetryFile')"
+                      ></button>
+                      <button
+                        type="button"
+                        @click="addManualFromFailed(fIdx)"
+                        class="rounded-full border border-champagne-line bg-pearl px-3.5 py-1.5 text-xs font-medium text-obsidian transition-colors hover:border-champagne whitespace-nowrap shrink-0"
+                        x-text="t('btnAddManual')"
+                      ></button>
+                    </div>
+                  </li>
+                </template>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Real Multi-File AI OCR Scanning Queue -->
+          <div x-show="isScanning" x-cloak class="mx-auto max-w-xl py-4 text-center">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-champagne-line bg-blush text-obsidian">
+              <i data-lucide="loader-2" class="h-5 w-5 animate-spin text-champagne"></i>
+            </div>
+            <p class="mt-4 font-serif text-2xl font-medium text-obsidian" x-text="t('ocrTitle')"></p>
+
+            <ul class="mt-5 divide-y divide-champagne-soft rounded-2xl border border-champagne-line bg-white/95 text-left text-xs">
+              <template x-for="(item, idx) in batchQueue" :key="idx">
+                <li class="flex items-center justify-between gap-4 px-4 py-3.5">
+                  <div class="min-w-0">
+                    <div class="truncate font-medium text-obsidian" x-text="item.name"></div>
+                    <div x-show="item.error" class="mt-0.5 text-[11px] text-peony" x-text="item.error"></div>
+                  </div>
+                  <span
+                    class="shrink-0 font-semibold whitespace-nowrap"
+                    :class="item.status === 'done' ? 'text-emeraldSafe' : (item.status === 'error' ? 'text-peony' : (item.status === 'scanning' ? 'text-obsidian' : 'text-stone'))"
+                    x-text="item.status === 'done' ? t('ocrStatusDone') : (item.status === 'error' ? t('ocrStatusError') : (item.status === 'scanning' ? t('ocrStatusScanning') : t('ocrStatusPending')))"
+                  ></span>
+                </li>
+              </template>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Feature C: 1-Click Vendor Assignment Bar (Visible when pendingVendorAddons.length > 0) -->
+        <div
+          id="vendor-assignment-bar"
+          x-show="pendingVendorAddons.length > 0"
+          x-cloak
+          x-transition.opacity.duration.200ms
+          class="mx-auto mt-6 max-w-5xl space-y-3"
+        >
+          <template x-for="addon in pendingVendorAddons" :key="addon.id">
+            <div class="rounded-[24px] border border-champagne-line bg-white/90 p-5 shadow-card backdrop-blur-lg sm:p-6">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                    <span class="rounded-full border border-champagne-line bg-blush px-2.5 py-0.5 text-obsidian" x-text="getCategoryBadge(addon.vendorCategory)"></span>
+                    <span class="uppercase tracking-wider text-stone" x-text="t('vendorAssignKicker')"></span>
+                  </div>
+                  <p class="mt-2 font-serif text-xl font-medium text-obsidian sm:text-2xl">
+                    <span x-text="getCategoryFullTitle(addon.vendorCategory)"></span>
+                    <span x-show="addon.vendorName" class="text-stone" x-text="`— ${addon.vendorName}`"></span>
+                    <span class="font-semibold tabular-nums" x-text="`(${formatCurrency(estimateAddonTotalEur(addon))})`"></span>
+                    <span x-text="t('vendorAssignQuestionTail')"></span>
+                  </p>
+                  <p class="mt-1 text-xs text-stone" x-text="addon.fileName"></p>
+                </div>
+
+                <button
+                  type="button"
+                  @click="dismissPendingVendor(addon.id)"
+                  :title="t('vendorAssignDismiss')"
+                  :aria-label="t('vendorAssignDismiss')"
+                  class="rounded-full p-2 text-stone/70 transition-colors hover:bg-peony-bg hover:text-peony shrink-0"
+                >
+                  <i data-lucide="x" class="h-4 w-4"></i>
+                </button>
+              </div>
+
+              <p x-show="venues.length === 0" class="mt-3 text-xs text-stone" x-text="t('vendorAssignWaitingNote')"></p>
+
+              <!-- 1-Click Pill Action Buttons -->
+              <div class="mt-4 flex flex-wrap items-center gap-2">
+                <template x-for="v in venues" :key="'assign-' + addon.id + '-' + v.id">
+                  <button
+                    type="button"
+                    @click="assignPendingToSingle(addon.id, v.id)"
+                    class="rounded-full border border-champagne-line bg-pearl px-4 py-2 text-xs font-semibold text-obsidian transition-colors hover:border-champagne hover:bg-white whitespace-nowrap shrink-0"
+                    x-text="`${t('vendorAssignOnlyPrefix')} ${displayVenueName(v)}`"
+                  ></button>
+                </template>
+
+                <button
+                  type="button"
+                  x-show="venues.length > 0"
+                  @click="assignPendingToMissing(addon.id)"
+                  class="rounded-full border border-[#CCFBF1] bg-emeraldSafe-bg px-4 py-2 text-xs font-semibold text-emeraldSafe transition-colors hover:bg-emeraldSafe hover:text-white whitespace-nowrap shrink-0"
+                  x-text="t('vendorAssignMissing')"
+                ></button>
+
+                <button
+                  type="button"
+                  x-show="venues.length > 1"
+                  @click="assignPendingToAll(addon.id)"
+                  class="rounded-full bg-obsidian px-4 py-2 text-xs font-semibold text-pearl transition-colors hover:bg-obsidian/90 whitespace-nowrap shrink-0"
+                  x-text="t('vendorAssignAll')"
+                ></button>
+
+                <button
+                  type="button"
+                  @click="convertPendingToStandalone(addon.id)"
+                  class="rounded-full px-3.5 py-2 text-xs font-medium text-stone underline-offset-4 hover:text-obsidian hover:underline whitespace-nowrap shrink-0"
+                  x-text="t('vendorAssignStandalone')"
+                ></button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </section>
+
+      <!-- 2. Sticky Floating Glass Equalizer Dock -->
+      <section
+        id="equalizer-bar"
+        class="sticky top-0 z-30 border-y border-champagne-soft bg-white/80 backdrop-blur-xl"
+      >
+        <div class="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-3.5 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+          <!-- Guest Count Slider (5 - 300) -->
+          <div class="flex flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-5">
+            <div class="flex items-center justify-between sm:justify-start sm:gap-3 shrink-0">
+              <label for="guestSlider" class="text-xs font-semibold tracking-wide uppercase text-stone whitespace-nowrap" x-text="t('guestLabel')"></label>
+              <div class="flex items-baseline gap-1.5">
+                <span class="font-serif text-2xl font-semibold text-obsidian tabular-nums" x-text="guestCount"></span>
+                <span class="text-xs text-stone" x-text="t('guestUnit')"></span>
+              </div>
+            </div>
+
+            <div class="flex flex-1 items-center gap-3">
+              <span class="hidden text-[11px] font-medium text-stone tabular-nums sm:inline">5</span>
+              <input
+                id="guestSlider"
+                type="range"
+                min="5"
+                max="300"
+                step="5"
+                x-model.number="guestCount"
+                :style="getSliderProgressStyle()"
+                class="atelier-slider w-full"
+                :aria-label="t('guestLabel')"
+              />
+              <span class="hidden text-[11px] font-medium text-stone tabular-nums sm:inline">300</span>
+            </div>
+          </div>
+
+          <!-- Currency Toggle, Language Toggle & Reference Rate -->
+          <div class="flex items-center justify-between gap-3 border-t border-champagne-soft pt-2 lg:border-t-0 lg:pt-0 shrink-0">
+            <span class="hidden text-xs text-stone tabular-nums xl:inline" x-text="t('refRate')"></span>
+
+            <div class="flex items-center gap-2.5 sm:gap-3">
+              <span class="text-xs text-stone whitespace-nowrap">
+                <strong class="font-semibold text-obsidian tabular-nums" x-text="venues.length"></strong>
+                <span x-text="t('activeVenuesLabel')"></span>
+              </span>
+
+              <!-- Segmented Currency Pill Control -->
+              <div class="inline-flex items-center rounded-full border border-champagne-line bg-blush/90 p-0.5" role="group" aria-label="Currency">
+                <button
+                  type="button"
+                  @click="currency = 'EUR'"
+                  :class="currency === 'EUR' ? 'bg-obsidian text-pearl shadow-sm' : 'text-stone hover:text-obsidian'"
+                  class="rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 whitespace-nowrap shrink-0 sm:px-3.5"
+                >
+                  EUR (€)
+                </button>
+                <button
+                  type="button"
+                  @click="currency = 'TRY'"
+                  :class="currency === 'TRY' ? 'bg-obsidian text-pearl shadow-sm' : 'text-stone hover:text-obsidian'"
+                  class="rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 whitespace-nowrap shrink-0 sm:px-3.5"
+                >
+                  TRY (₺)
+                </button>
+              </div>
+
+              <!-- Segmented Language Pill Toggle -->
+              <div class="inline-flex items-center rounded-full border border-champagne-line bg-blush/90 p-0.5" role="group" aria-label="Language">
+                <button
+                  type="button"
+                  @click="setLang('tr')"
+                  :class="lang === 'tr' ? 'bg-obsidian text-pearl shadow-sm' : 'text-stone hover:text-obsidian'"
+                  class="rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-200 whitespace-nowrap shrink-0"
+                >
+                  TR
+                </button>
+                <button
+                  type="button"
+                  @click="setLang('en')"
+                  :class="lang === 'en' ? 'bg-obsidian text-pearl shadow-sm' : 'text-stone hover:text-obsidian'"
+                  class="rounded-full px-2.5 py-1 text-xs font-semibold transition-all duration-200 whitespace-nowrap shrink-0"
+                >
+                  EN
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. User-Uploaded Venues Side-by-Side Comparison Workspace -->
+      <section id="comparison-section" class="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14">
+        <!-- Empty State: 3 Editorial Glass Onboarding Cards + Live Sample CTA -->
+        <div x-show="venues.length === 0">
+          <div class="mx-auto max-w-2xl text-center">
+            <h2 class="font-serif text-3xl font-medium tracking-tight text-obsidian sm:text-4xl" x-text="t('guideTitle')"></h2>
+            <p class="mt-2.5 text-sm leading-relaxed text-stone sm:text-base" x-text="t('guideSubtitle')"></p>
+          </div>
+
+          <div class="mt-9 grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div class="rounded-[24px] border border-champagne-line bg-white/80 p-7 backdrop-blur-md shadow-card">
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="font-serif text-4xl italic font-normal text-champagne/80">01</span>
+                <span class="text-[11px] font-semibold tracking-wider uppercase text-stone" x-text="t('guideStep1Kicker')"></span>
+              </div>
+              <h3 class="mt-4 font-serif text-2xl font-medium text-obsidian" x-text="t('guideStep1Title')"></h3>
+              <p class="mt-2 text-sm leading-relaxed text-stone" x-text="t('guideStep1Body')"></p>
+            </div>
+
+            <div class="rounded-[24px] border border-champagne-line bg-white/80 p-7 backdrop-blur-md shadow-card">
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="font-serif text-4xl italic font-normal text-champagne/80">02</span>
+                <span class="text-[11px] font-semibold tracking-wider uppercase text-stone" x-text="t('guideStep2Kicker')"></span>
+              </div>
+              <h3 class="mt-4 font-serif text-2xl font-medium text-obsidian" x-text="t('guideStep2Title')"></h3>
+              <p class="mt-2 text-sm leading-relaxed text-stone" x-text="t('guideStep2Body')"></p>
+            </div>
+
+            <div class="rounded-[24px] border border-champagne-line bg-white/80 p-7 backdrop-blur-md shadow-card">
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="font-serif text-4xl italic font-normal text-champagne/80">03</span>
+                <span class="text-[11px] font-semibold tracking-wider uppercase text-stone" x-text="t('guideStep3Kicker')"></span>
+              </div>
+              <h3 class="mt-4 font-serif text-2xl font-medium text-obsidian" x-text="t('guideStep3Title')"></h3>
+              <p class="mt-2 text-sm leading-relaxed text-stone" x-text="t('guideStep3Body')"></p>
+            </div>
+          </div>
+
+          <div class="mt-9 flex flex-wrap items-center justify-center gap-3">
+            <label
+              for="quoteFileInput"
+              class="inline-flex cursor-pointer items-center gap-2 rounded-full bg-obsidian px-6 py-3 text-sm font-medium text-pearl transition-all duration-200 hover:bg-obsidian/90 whitespace-nowrap shrink-0"
+            >
+              <i data-lucide="upload" class="h-4 w-4 text-champagne"></i>
+              <span x-text="t('btnChooseFile')"></span>
+            </label>
+
+            <button
+              type="button"
+              @click="addBlankManualVenue()"
+              class="rounded-full border border-champagne-line bg-white px-5 py-3 text-sm font-medium text-obsidian transition-colors hover:border-champagne whitespace-nowrap shrink-0"
+              x-text="t('btnAddBlankVenue')"
+            ></button>
+          </div>
+        </div>
+
+        <!-- Populated State: Header & Dynamic Atelier Cards Grid -->
+        <div x-show="venues.length > 0" x-cloak>
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 class="font-serif text-3xl font-medium tracking-tight text-obsidian sm:text-4xl" x-text="t('comparisonTitle')"></h2>
+              <p class="mt-1 text-sm text-stone">
+                <span x-show="lang === 'en'">For </span>
+                <span class="tabular-nums font-semibold text-obsidian" x-text="guestCount"></span>
+                <span x-text="t('comparisonSubtitleTail')"></span>
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <p class="text-xs text-stone" x-text="t('comparisonHint')"></p>
+              <button
+                type="button"
+                @click="addBlankManualVenue()"
+                class="rounded-full border border-champagne-line bg-white px-4 py-2 text-xs font-medium text-obsidian transition-colors hover:border-champagne whitespace-nowrap shrink-0"
+                x-text="t('btnAddBlankVenue')"
+              ></button>
+            </div>
+          </div>
+
+          <!-- Dynamic Venue Comparison Grid -->
+          <div
+            class="mt-8 grid grid-cols-1 gap-7 items-stretch"
+            :class="venues.length >= 3 ? 'md:grid-cols-2 lg:grid-cols-3' : (venues.length === 2 ? 'lg:grid-cols-2' : 'max-w-2xl')"
+          >
+            <template x-for="venue in venues" :key="venue.id">
+              <article
+                class="flex flex-col justify-between overflow-hidden rounded-[24px] border bg-white shadow-card transition-all duration-200"
+                :class="isBestValue(venue) ? 'border-emeraldSafe/45 ring-1 ring-champagne/30' : 'border-champagne-soft'"
+              >
+                <div>
+                  <!-- Atmospheric Visual Cover Banner (1. Verified Real Photo -> 2. Uploaded Quote Image -> 3. Curated Luxury Cover) -->
+                  <div class="relative h-44 w-full overflow-hidden bg-gradient-to-br from-[#F9F3F0] via-[#EFE6E0] to-[#E5D7CC]">
+                    <img
+                      x-show="!venue.coverError && getVenueCoverUrl(venue)"
+                      :src="getVenueCoverUrl(venue)"
+                      :alt="displayVenueName(venue)"
+                      referrerPolicy="no-referrer"
+                      @error="handleCoverImgError(venue)"
+                      class="h-full w-full transition-transform duration-300"
+                      :class="getActiveCoverKind(venue) === 'quote' ? 'object-contain bg-obsidian' : 'object-cover'"
+                    />
+
+                    <!-- Contrast Scrim -->
+                    <div
+                      x-show="getActiveCoverKind(venue) !== 'quote'"
+                      class="pointer-events-none absolute inset-0 bg-gradient-to-t from-obsidian/70 via-obsidian/20 to-transparent"
+                    ></div>
+
+                    <!-- Top Left Best Value Badge & Photo Search Status -->
+                    <div class="absolute top-3.5 left-3.5 flex flex-wrap items-center gap-2 max-w-[68%]">
+                      <span
+                        x-show="isBestValue(venue)"
+                        class="inline-flex items-center gap-1 rounded-full border border-champagne/60 bg-emeraldSafe-bg/95 px-3 py-1 text-[11px] font-semibold text-emeraldSafe shadow-sm backdrop-blur-md whitespace-nowrap"
+                        x-text="t('bestValueBadge')"
+                      ></span>
+                      <span
+                        x-show="!isBestValue(venue) && venues.length > 1"
+                        class="inline-flex items-center rounded-full border border-white/25 bg-obsidian/75 px-3 py-1 text-[11px] font-medium text-pearl tabular-nums backdrop-blur-md whitespace-nowrap"
+                        x-text="`+${formatCurrency(getDeltaFromLowest(venue))} ${t('deltaSuffix')}`"
+                      ></span>
+                      <span
+                        x-show="venue.photoStatus === 'searching'"
+                        x-cloak
+                        class="inline-flex items-center gap-1.5 rounded-full border border-white/30 bg-obsidian/75 px-2.5 py-1 text-[10px] font-medium text-pearl backdrop-blur-md whitespace-nowrap"
+                      >
+                        <span class="h-1.5 w-1.5 rounded-full bg-champagne animate-pulse"></span>
+                        <span x-text="t('photoSearching')"></span>
+                      </span>
+                    </div>
+
+                    <!-- Top Right Controls: Refresh Photo + Cover Layer Toggle + Remove Card -->
+                    <div class="absolute top-3.5 right-3.5 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        x-show="(venue.name || '').trim().length >= 2"
+                        @click="fetchVenuePhoto(venue.id, true)"
+                        :disabled="venue.photoStatus === 'searching'"
+                        :title="t('photoRefreshTitle')"
+                        :aria-label="t('photoRefreshTitle')"
+                        class="flex h-7 w-7 items-center justify-center rounded-full border border-white/25 bg-obsidian/65 text-pearl/95 backdrop-blur-md transition-colors hover:border-champagne hover:bg-obsidian disabled:opacity-50"
+                      >
+                        <i data-lucide="camera" class="h-3.5 w-3.5" :class="venue.photoStatus === 'searching' ? 'animate-pulse text-champagne' : ''"></i>
+                      </button>
+
+                      <button
+                        type="button"
+                        x-show="getAvailableCoverModes(venue).length > 1"
+                        @click="cycleCoverMode(venue)"
+                        class="rounded-full border border-white/30 bg-obsidian/70 px-2.5 py-1 text-[11px] font-medium text-pearl backdrop-blur-md transition-colors hover:bg-obsidian whitespace-nowrap"
+                        x-text="getNextCoverToggleLabel(venue)"
+                      ></button>
+
+                      <button
+                        type="button"
+                        @click="removeVenue(venue.id)"
+                        :title="t('removeVenueLabel')"
+                        :aria-label="t('removeVenueLabel')"
+                        class="flex h-7 w-7 items-center justify-center rounded-full border border-white/25 bg-obsidian/65 text-pearl/90 backdrop-blur-md transition-colors hover:bg-peony hover:text-white"
+                      >
+                        <i data-lucide="x" class="h-3.5 w-3.5"></i>
+                      </button>
+                    </div>
+
+                    <!-- Bottom Overlay Metadata (Region, Type & Verified Source Attribution) -->
+                    <div
+                      x-show="getActiveCoverKind(venue) !== 'quote'"
+                      class="absolute right-3.5 bottom-3 left-3.5 flex flex-wrap items-center justify-between gap-1.5"
+                    >
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        <span
+                          class="rounded-full border border-white/25 bg-white/85 px-2.5 py-0.5 text-[11px] font-semibold text-obsidian backdrop-blur-md"
+                          x-text="venue.region[lang]"
+                        ></span>
+                        <span
+                          class="rounded-full border border-white/20 bg-obsidian/60 px-2.5 py-0.5 text-[11px] font-medium text-pearl backdrop-blur-md"
+                          x-text="venue.venueType[lang]"
+                        ></span>
+                      </div>
+
+                      <a
+                        x-show="getActiveCoverKind(venue) === 'real' && venue.realPhotoSourceLabel"
+                        :href="venue.realPhotoSourceUrl || '#'"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        @click.stop
+                        class="inline-flex items-center gap-1 rounded-full border border-champagne/40 bg-obsidian/70 px-2.5 py-0.5 text-[10px] font-medium text-pearl/95 backdrop-blur-md transition-colors hover:border-champagne hover:text-champagne"
+                      >
+                        <span x-text="`📷 ${venue.realPhotoSourceLabel}`"></span>
+                      </a>
+                    </div>
+                  </div>
+
+                  <!-- Card Inner Body -->
+                  <div class="p-6 sm:p-7">
+                    <!-- Title + Edit Action Row -->
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0 flex-1">
+                        <!-- Unknown Venue Name Prompt -->
+                        <div x-show="venue.nameUnknown && !(venue.name && venue.name.trim())" class="rounded-2xl border border-[#FECDD3] bg-peony-bg/70 p-3">
+                          <label class="block">
+                            <span class="block text-[11px] font-semibold text-peony" x-text="t('unknownNameBadge')"></span>
+                            <input
+                              type="text"
+                              x-model="venue.name"
+                              @change="onVenueNameCommitted(venue)"
+                              @keydown.enter.prevent="onVenueNameCommitted(venue)"
+                              :placeholder="t('unknownNamePlaceholder')"
+                              class="mt-1.5 w-full rounded-xl border border-champagne-line bg-white px-3 py-1.5 font-serif text-lg font-semibold text-obsidian placeholder:font-sans placeholder:text-xs placeholder:font-normal placeholder:text-stone/70 focus:border-champagne focus:outline-none"
+                            />
+                          </label>
+                        </div>
+
+                        <!-- Venue Title -->
+                        <h3
+                          x-show="!venue.nameUnknown || (venue.name && venue.name.trim())"
+                          @click="venue.editing = true"
+                          :title="t('editBtn')"
+                          class="cursor-pointer font-serif text-2xl font-semibold tracking-tight text-obsidian hover:text-stone transition-colors sm:text-[1.85rem] leading-tight"
+                          x-text="displayVenueName(venue)"
+                        ></h3>
+
+                        <p class="mt-1 text-xs text-stone break-words" x-text="venue.sourceLabel[lang]"></p>
+                      </div>
+
+                      <button
+                        type="button"
+                        @click="if (venue.editing) onVenueNameCommitted(venue); venue.editing = !venue.editing"
+                        class="rounded-full border border-champagne-line bg-blush/80 px-3.5 py-1.5 text-xs font-medium text-obsidian transition-colors hover:border-champagne hover:bg-white whitespace-nowrap shrink-0"
+                        x-text="venue.editing ? t('doneEditingBtn') : t('editBtn')"
+                      ></button>
+                    </div>
+
+                    <!-- Merge into another card -->
+                    <div x-show="venues.length >= 2" class="mt-3 flex items-center justify-end">
+                      <select
+                        aria-label="Merge venue"
+                        @change="if ($event.target.value) { mergeVenueInto(venue.id, $event.target.value); $event.target.value = ''; }"
+                        class="rounded-full border border-champagne-line bg-pearl px-3 py-1 text-[11px] font-medium text-stone transition-colors hover:border-champagne hover:text-obsidian focus:border-champagne focus:outline-none"
+                      >
+                        <option value="" x-text="t('mergeSelectPlaceholder')"></option>
+                        <template x-for="other in venues.filter(o => o.id !== venue.id)" :key="'m-' + other.id">
+                          <option :value="other.id" x-text="`↳ ${displayVenueName(other)}`"></option>
+                        </template>
+                      </select>
+                    </div>
+
+                    <!-- Full Inline Edit Panel -->
+                    <div x-show="venue.editing" x-cloak class="mt-3.5 grid grid-cols-1 gap-3 rounded-2xl border border-champagne-line bg-blush/60 p-4 text-xs sm:grid-cols-2">
+                      <label class="block">
+                        <span class="block text-[11px] font-medium text-stone" x-text="t('nameEditLabel')"></span>
+                        <input
+                          type="text"
+                          x-model="venue.name"
+                          @input="if(venue.name.trim()) venue.nameUnknown = false"
+                          @change="onVenueNameCommitted(venue)"
+                          @keydown.enter.prevent="onVenueNameCommitted(venue)"
+                          :placeholder="t('unknownNamePlaceholder')"
+                          class="mt-1 w-full rounded-xl border border-champagne-line bg-white px-3 py-1.5 text-sm font-medium text-obsidian focus:border-champagne focus:outline-none"
+                        />
+                      </label>
+                      <label class="block">
+                        <span class="block text-[11px] font-medium text-stone" x-text="t('regionEditLabel')"></span>
+                        <input
+                          type="text"
+                          x-model="venue.region[lang]"
+                          @change="if ((venue.name || '').trim().length >= 2) fetchVenuePhoto(venue.id, false)"
+                          class="mt-1 w-full rounded-xl border border-champagne-line bg-white px-3 py-1.5 text-sm font-medium text-obsidian focus:border-champagne focus:outline-none"
+                        />
+                      </label>
+                      <label class="block">
+                        <span class="block text-[11px] font-medium text-stone" x-text="t('baseFeeEditLabel')"></span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="100"
+                          x-model.number="venue.baseFeeEur"
+                          class="mt-1 w-full rounded-xl border border-champagne-line bg-white px-3 py-1.5 text-sm font-semibold text-obsidian tabular-nums focus:border-champagne focus:outline-none"
+                        />
+                      </label>
+                      <label class="block">
+                        <span class="block text-[11px] font-medium text-stone" x-text="t('fbEditLabel')"></span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="5"
+                          x-model.number="venue.fbPerPersonEur"
+                          class="mt-1 w-full rounded-xl border border-champagne-line bg-white px-3 py-1.5 text-sm font-semibold text-obsidian tabular-nums focus:border-champagne focus:outline-none"
+                        />
+                      </label>
+                    </div>
+
+                    <!-- Base Metrics Breakdown -->
+                    <dl class="mt-5 divide-y divide-champagne-soft border-y border-champagne-soft text-sm">
+                      <div class="flex items-center justify-between py-3">
+                        <dt class="text-stone" x-text="t('baseFeeLabel')"></dt>
+                        <dd class="font-semibold text-obsidian tabular-nums" x-text="formatCurrency(venue.baseFeeEur)"></dd>
+                      </div>
+
+                      <div class="flex items-center justify-between py-3">
+                        <dt class="text-stone">
+                          <span x-text="t('fbPerPersonLabel')"></span>
+                          <span class="text-xs text-stone/80 tabular-nums" x-text="`(${formatCurrency(venue.fbPerPersonEur)} × ${guestCount})`"></span>
+                        </dt>
+                        <dd class="font-semibold text-obsidian tabular-nums" x-text="formatCurrency(calculateBreakdown(venue).fbSubtotalEur)"></dd>
+                      </div>
+
+                      <div class="flex items-center justify-between py-3">
+                        <dt class="text-stone" x-text="t('selectedExtrasLabel')"></dt>
+                        <dd
+                          class="font-semibold tabular-nums"
+                          :class="calculateBreakdown(venue).hiddenExtrasTotalEur > 0 ? 'text-peony' : 'text-emeraldSafe'"
+                          x-text="calculateBreakdown(venue).hiddenExtrasTotalEur > 0 ? `+${formatCurrency(calculateBreakdown(venue).hiddenExtrasTotalEur)}` : formatCurrency(0)"
+                        ></dd>
+                      </div>
+                    </dl>
+
+                    <!-- Live Visual Budget Distribution Bar -->
+                    <div class="mt-4">
+                      <div class="flex items-center justify-between text-[11px] text-stone">
+                        <span class="font-medium" x-text="t('budgetMixLabel')"></span>
+                        <div class="flex items-center gap-2.5 tabular-nums">
+                          <span class="inline-flex items-center gap-1">
+                            <span class="h-2 w-2 rounded-full bg-obsidian"></span>
+                            <span x-text="`${t('legendRent')} %${getBudgetDistribution(venue).baseShare || 0}`"></span>
+                          </span>
+                          <span class="inline-flex items-center gap-1">
+                            <span class="h-2 w-2 rounded-full bg-champagne"></span>
+                            <span x-text="`${t('legendFb')} %${getBudgetDistribution(venue).fbShare || 0}`"></span>
+                          </span>
+                          <span class="inline-flex items-center gap-1">
+                            <span class="h-2 w-2 rounded-full bg-peony"></span>
+                            <span x-text="`${t('legendExtras')} %${getBudgetDistribution(venue).extrasShare || 0}`"></span>
+                          </span>
+                        </div>
+                      </div>
+                      <div class="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-[#F4ECE4]">
+                        <div
+                          class="h-full bg-obsidian transition-all duration-300"
+                          :style="`width: ${getBudgetDistribution(venue).basePct}%`"
+                        ></div>
+                        <div
+                          class="h-full bg-champagne transition-all duration-300"
+                          :style="`width: ${getBudgetDistribution(venue).fbPct}%`"
+                        ></div>
+                        <div
+                          class="h-full bg-peony transition-all duration-300"
+                          :style="`width: ${getBudgetDistribution(venue).extrasPct}%`"
+                        ></div>
+                      </div>
+                    </div>
+
+                    <!-- Highlighted Silk-Champagne Turnkey Total Spotlight -->
+                    <div
+                      class="mt-4 rounded-2xl border p-5 bg-gradient-to-br from-[#FAF6F2] to-[#F4ECE4]"
+                      :class="isBestValue(venue) ? 'border-emeraldSafe/40' : 'border-champagne-line'"
+                    >
+                      <div class="flex items-center justify-between gap-3">
+                        <span class="text-xs font-semibold tracking-wider uppercase text-stone" x-text="t('turnkeyTitle')"></span>
+                        <span
+                          x-show="isBestValue(venue)"
+                          class="inline-flex items-center gap-1 text-xs font-semibold text-emeraldSafe whitespace-nowrap"
+                          x-text="t('bestValueBadge')"
+                        ></span>
+                      </div>
+
+                      <div class="mt-2 flex items-baseline justify-between gap-4">
+                        <span
+                          class="font-serif text-[2.25rem] leading-none font-semibold tracking-tight text-obsidian tabular-nums sm:text-[2.5rem]"
+                          x-text="formatCurrency(calculateBreakdown(venue).turnkeyTotalEur)"
+                        ></span>
+                        <span class="text-xs text-stone tabular-nums whitespace-nowrap">
+                          <span x-text="t('perGuestNet')"></span>
+                          <strong class="font-semibold text-obsidian" x-text="formatCurrency(calculateBreakdown(venue).effectivePerGuestEur)"></strong>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Aligned Fixed-Order Cost Categories across Venue Cards -->
+                    <div class="mt-6">
+                      <div class="flex items-center justify-between gap-2">
+                        <h4 class="text-xs font-semibold tracking-wider uppercase text-obsidian" x-text="t('aiFlagsTitle')"></h4>
+                        <span class="text-[11px] text-stone" x-text="t('aiFlagsHint')"></span>
+                      </div>
+
+                      <p x-show="getActiveComparisonCategories().length === 0" class="mt-3 text-xs text-stone" x-text="t('noFlagsYet')"></p>
+
+                      <div x-show="getActiveComparisonCategories().length > 0" class="mt-3 space-y-2.5">
+                        <template x-for="cat in getActiveComparisonCategories()" :key="venue.id + '-cat-' + cat">
+                          <div
+                            class="rounded-2xl border border-champagne-soft/90 bg-pearl/55 p-2.5 transition-colors"
+                            :class="venues.length > 1 ? 'md:min-h-[106px] flex flex-col justify-between' : ''"
+                          >
+                            <!-- Fixed-Order Category Slot Header -->
+                            <div class="mb-2 flex items-center justify-between gap-2 px-1">
+                              <span
+                                class="inline-flex items-center rounded-full border border-champagne-line bg-white px-2.5 py-0.5 text-[10px] font-semibold text-obsidian"
+                                x-text="getCategoryBadge(cat)"
+                              ></span>
+
+                              <button
+                                type="button"
+                                x-show="getVenueFlagsByCategory(venue, cat).length === 0"
+                                @click="openAddFlagForCategory(venue.id, cat)"
+                                class="rounded-full border border-champagne-line bg-white px-2.5 py-0.5 text-[10px] font-semibold text-obsidian transition-colors hover:border-champagne hover:bg-blush whitespace-nowrap"
+                                x-text="t('quickAddCategoryBtn')"
+                              ></button>
+                            </div>
+
+                            <!-- Case 1: Venue has 1+ items in this category -->
+                            <ul x-show="getVenueFlagsByCategory(venue, cat).length > 0" class="space-y-2">
+                              <template x-for="flag in getVenueFlagsByCategory(venue, cat)" :key="flag.id">
+                                <li>
+                                  <!-- Risk / Vendor Service Row with iOS Tactile Toggle -->
+                                  <template x-if="flag.type === 'risk'">
+                                    <div
+                                      class="flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-colors duration-200"
+                                      :class="flag.active ? (flag.vendorCategory ? 'border-champagne-line bg-blush/75 text-obsidian' : 'border-[#FECDD3] bg-peony-bg/75 text-[#9F1239]') : 'border-champagne-soft bg-white/75 opacity-75'"
+                                    >
+                                      <button
+                                        type="button"
+                                        role="switch"
+                                        :aria-checked="flag.active"
+                                        @click="toggleFlag(venue.id, flag.id)"
+                                        class="flex flex-1 items-start justify-between gap-2.5 text-left"
+                                      >
+                                        <div class="flex items-start gap-2.5 min-w-0">
+                                          <!-- iOS Tactile Toggle Switch -->
+                                          <span
+                                            class="mt-0.5 relative inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors duration-200"
+                                            :class="flag.active ? (flag.vendorCategory ? 'bg-obsidian' : 'bg-peony') : 'bg-[#DDD2CA]'"
+                                          >
+                                            <span
+                                              class="inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200"
+                                              :class="flag.active ? 'translate-x-4' : 'translate-x-0'"
+                                            ></span>
+                                          </span>
+
+                                          <div class="min-w-0">
+                                            <div x-show="flag.vendorSourceFile" class="mb-0.5 truncate text-[10px] font-medium text-stone" x-text="flag.vendorSourceFile"></div>
+
+                                            <div
+                                              class="text-xs font-semibold leading-snug"
+                                              :class="flag.active ? (flag.vendorCategory ? 'text-obsidian' : 'text-[#9F1239]') : 'text-stone line-through'"
+                                              x-text="flag.label[lang]"
+                                            ></div>
+
+                                            <p x-show="flag.detail[lang]" class="mt-0.5 text-[11px] leading-relaxed text-stone" x-text="flag.detail[lang]"></p>
+
+                                            <!-- Smart Override Note -->
+                                            <p
+                                              x-show="!flag.active && flag.replacedBy"
+                                              class="mt-1 text-[11px] font-semibold text-emeraldSafe"
+                                              x-text="`${t('replacedByNote')}: ${flag.replacedBy}`"
+                                            ></p>
+                                          </div>
+                                        </div>
+
+                                        <span
+                                          class="text-xs font-semibold tabular-nums whitespace-nowrap shrink-0 pt-0.5"
+                                          :class="flag.active ? (flag.vendorCategory ? 'text-obsidian' : 'text-[#9F1239]') : 'text-stone'"
+                                          x-text="flag.active ? `+${formatCurrency(getFlagAmountEur(venue, flag))}` : t('excludedLabel')"
+                                        ></span>
+                                      </button>
+
+                                      <button
+                                        type="button"
+                                        @click="removeFlag(venue.id, flag.id)"
+                                        :title="t('removeFlagLabel')"
+                                        :aria-label="t('removeFlagLabel')"
+                                        class="rounded-full p-1 text-stone/60 transition-colors hover:bg-white hover:text-peony shrink-0"
+                                      >
+                                        ×
+                                      </button>
+                                    </div>
+                                  </template>
+
+                                  <!-- Botanical Mint Included Safe Protection -->
+                                  <template x-if="flag.type === 'safe'">
+                                    <div class="flex items-center justify-between gap-2 rounded-xl border border-[#CCFBF1] bg-emeraldSafe-bg/85 px-3 py-2.5 text-[#115E59]">
+                                      <div class="flex items-start gap-2.5 min-w-0 flex-1">
+                                        <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emeraldSafe/15 text-[11px] font-bold text-emeraldSafe">
+                                          ✓
+                                        </span>
+                                        <div class="min-w-0">
+                                          <div class="text-xs font-semibold text-[#115E59]" x-text="flag.label[lang]"></div>
+                                          <p x-show="flag.detail[lang]" class="mt-0.5 text-[11px] leading-relaxed text-[#115E59]/80" x-text="flag.detail[lang]"></p>
+                                        </div>
+                                      </div>
+                                      <div class="flex items-center gap-1.5 shrink-0">
+                                        <span class="rounded-full bg-white/85 px-2.5 py-0.5 text-[11px] font-semibold text-emeraldSafe whitespace-nowrap" x-text="t('includedLabel')"></span>
+                                        <button
+                                          type="button"
+                                          @click="removeFlag(venue.id, flag.id)"
+                                          :title="t('removeFlagLabel')"
+                                          :aria-label="t('removeFlagLabel')"
+                                          class="rounded-full p-1 text-emeraldSafe/60 transition-colors hover:bg-white hover:text-peony"
+                                        >
+                                          ×
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </template>
+                                </li>
+                              </template>
+                            </ul>
+
+                            <!-- Case 2: Cross-Card Alignment Placeholder when missing in this venue -->
+                            <div
+                              x-show="getVenueFlagsByCategory(venue, cat).length === 0"
+                              class="flex items-center justify-between gap-2 rounded-xl border border-dashed border-champagne-line bg-white/65 px-3 py-3 text-xs text-stone"
+                            >
+                              <span x-text="t('categoryNotSpecified')"></span>
+                              <span class="text-[11px] font-medium text-stone/80 tabular-nums">—</span>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
+
+                      <!-- Add New Hidden Cost / VAT Item -->
+                      <div class="mt-3.5">
+                        <button
+                          type="button"
+                          x-show="!venue.showAddFlag"
+                          @click="venue.newFlag = { label: '', calcType: 'fixed', amount: '', category: '' }; venue.showAddFlag = true"
+                          class="text-xs font-medium text-obsidian underline-offset-4 hover:text-champagne hover:underline"
+                          x-text="t('btnShowAddFlag')"
+                        ></button>
+
+                        <div x-show="venue.showAddFlag" x-cloak class="mt-2 space-y-2.5 rounded-2xl border border-champagne-line bg-blush/70 p-3.5 text-xs">
+                          <input
+                            type="text"
+                            x-model="venue.newFlag.label"
+                            :placeholder="t('newFlagLabelPlaceholder')"
+                            class="w-full rounded-xl border border-champagne-line bg-white px-3 py-2 text-xs text-obsidian focus:border-champagne focus:outline-none"
+                          />
+                          <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                            <select
+                              x-model="venue.newFlag.category"
+                              :aria-label="t('newFlagCategoryLabel')"
+                              class="rounded-xl border border-champagne-line bg-white px-2.5 py-2 text-xs text-obsidian focus:border-champagne focus:outline-none"
+                            >
+                              <option value="" x-text="t('newFlagCategoryAuto')"></option>
+                              <template x-for="catOpt in canonicalCategories" :key="'opt-' + catOpt">
+                                <option :value="catOpt" x-text="getCategoryBadge(catOpt)"></option>
+                              </template>
+                            </select>
+                            <select
+                              x-model="venue.newFlag.calcType"
+                              class="rounded-xl border border-champagne-line bg-white px-2.5 py-2 text-xs text-obsidian focus:border-champagne focus:outline-none"
+                            >
+                              <option value="fixed" x-text="t('newFlagTypeFixed')"></option>
+                              <option value="per_guest" x-text="t('newFlagTypePerGuest')"></option>
+                              <option value="vat_pct" x-text="t('newFlagTypeVat')"></option>
+                            </select>
+                            <input
+                              type="number"
+                              min="0"
+                              step="any"
+                              x-model="venue.newFlag.amount"
+                              :placeholder="t('newFlagAmountPlaceholder')"
+                              class="rounded-xl border border-champagne-line bg-white px-3 py-2 text-xs font-semibold text-obsidian tabular-nums focus:border-champagne focus:outline-none"
+                            />
+                          </div>
+                          <div class="flex items-center justify-end gap-2 pt-1">
+                            <button
+                              type="button"
+                              @click="venue.showAddFlag = false"
+                              class="rounded-full px-3 py-1.5 text-xs text-stone hover:text-obsidian"
+                              x-text="t('btnCancelNewFlag')"
+                            ></button>
+                            <button
+                              type="button"
+                              @click="addCustomFlag(venue.id)"
+                              class="rounded-full bg-obsidian px-4 py-1.5 text-xs font-medium text-pearl hover:bg-obsidian/90"
+                              x-text="t('btnSaveNewFlag')"
+                            ></button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Feature A: Direct Per-Card Frosted Vendor Dropzone -->
+                      <div
+                        class="mt-4"
+                        @dragover.prevent="dragOverVenueId = venue.id"
+                        @dragleave.prevent="if (dragOverVenueId === venue.id) dragOverVenueId = null"
+                        @drop.prevent="dragOverVenueId = null; handleCardDrop($event, venue.id)"
+                      >
+                        <input
+                          type="file"
+                          multiple
+                          class="sr-only"
+                          accept=".pdf,.png,.jpg,.jpeg,.webp"
+                          :id="'card-upload-' + venue.id"
+                          @change="handleCardFileInput($event, venue.id)"
+                        />
+
+                        <label
+                          :for="'card-upload-' + venue.id"
+                          class="flex cursor-pointer items-center justify-center rounded-2xl border px-4 py-3 text-center text-xs font-medium transition-all duration-200"
+                          :class="dragOverVenueId === venue.id ? 'border-champagne bg-blush text-obsidian shadow-sm' : 'border-champagne-line bg-pearl/90 text-stone hover:border-champagne hover:bg-blush/60 hover:text-obsidian'"
+                        >
+                          <span x-show="cardScanningId !== venue.id" x-text="t('cardVendorDropCta')"></span>
+                          <span x-show="cardScanningId === venue.id" class="inline-flex items-center gap-2 text-obsidian">
+                            <i data-lucide="loader-2" class="h-3.5 w-3.5 animate-spin text-champagne"></i>
+                            <span x-text="t('cardVendorScanning')"></span>
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </template>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Minimal Editorial Footer -->
+    <footer class="border-t border-champagne-soft bg-pearl/80">
+      <div class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-5 py-7 text-xs text-stone sm:flex-row sm:items-center sm:px-8">
+        <span class="font-serif text-base font-medium text-obsidian">Wedding Quote Decoder</span>
+        <span x-text="t('footerTagline')"></span>
+      </div>
+    </footer>
+
+    <!-- Partner Shareable Summary Modal -->
+    <div
+      x-show="showSummaryModal"
+      x-cloak
+      x-transition.opacity.duration.200ms
+      class="fixed inset-0 z-50 flex items-center justify-center bg-obsidian/45 p-4 backdrop-blur-sm"
+      @keydown.escape.window="showSummaryModal = false"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="summary-modal-title"
+    >
+      <div
+        @click.outside="showSummaryModal = false"
+        class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[28px] border border-champagne-line bg-pearl p-6 shadow-atelier sm:p-8"
+      >
+        <div class="flex items-start justify-between gap-4 border-b border-champagne-soft pb-4">
+          <div>
+            <p class="text-xs font-medium tracking-[0.16em] uppercase text-stone" x-text="t('modalKicker')"></p>
+            <h3 id="summary-modal-title" class="mt-1 font-serif text-3xl font-medium text-obsidian" x-text="t('modalTitle')"></h3>
+          </div>
+          <button
+            type="button"
+            @click="showSummaryModal = false"
+            class="rounded-full p-2 text-stone hover:bg-white hover:text-obsidian"
+            :aria-label="t('modalClose')"
+          >
+            <i data-lucide="x" class="h-5 w-5"></i>
+          </button>
+        </div>
+
+        <div class="mt-5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-stone">
+          <span>
+            <span x-text="t('modalGuests')"></span>
+            <strong class="font-semibold text-obsidian tabular-nums" x-text="`${guestCount} ${t('guestUnit')}`"></strong>
+          </span>
+          <span aria-hidden="true">·</span>
+          <span>
+            <span x-text="t('modalCurrency')"></span>
+            <strong class="font-semibold text-obsidian" x-text="currency"></strong>
+          </span>
+          <span aria-hidden="true">·</span>
+          <span class="tabular-nums" x-text="t('refRate')"></span>
+        </div>
+
+        <div class="mt-5 space-y-4">
+          <template x-for="venue in venues" :key="'sum-' + venue.id">
+            <div class="rounded-2xl border border-champagne-soft bg-white/95 p-5">
+              <div class="flex flex-wrap items-baseline justify-between gap-2">
+                <div>
+                  <h4 class="font-serif text-xl font-semibold text-obsidian" x-text="displayVenueName(venue)"></h4>
+                  <p class="text-xs text-stone" x-text="venue.region[lang]"></p>
+                </div>
+                <div class="text-right">
+                  <div class="font-serif text-2xl font-semibold text-obsidian tabular-nums" x-text="formatCurrency(calculateBreakdown(venue).turnkeyTotalEur)"></div>
+                  <div class="text-[11px] text-stone tabular-nums" x-text="`${formatCurrency(calculateBreakdown(venue).effectivePerGuestEur)} / ${t('perGuestShort')}`"></div>
+                </div>
+              </div>
+
+              <div class="mt-3 grid grid-cols-3 gap-2 border-t border-champagne-soft pt-3 text-xs">
+                <div>
+                  <span class="block text-stone" x-text="t('modalBaseRent')"></span>
+                  <span class="font-semibold text-obsidian tabular-nums" x-text="formatCurrency(venue.baseFeeEur)"></span>
+                </div>
+                <div>
+                  <span class="block text-stone" x-text="t('modalFbTotal')"></span>
+                  <span class="font-semibold text-obsidian tabular-nums" x-text="formatCurrency(calculateBreakdown(venue).fbSubtotalEur)"></span>
+                </div>
+                <div>
+                  <span class="block text-stone" x-text="t('modalHiddenVat')"></span>
+                  <span class="font-semibold text-peony tabular-nums" x-text="formatCurrency(calculateBreakdown(venue).hiddenExtrasTotalEur)"></span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <div class="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-champagne-soft pt-5 no-print">
+          <button
+            type="button"
+            @click="window.print()"
+            class="inline-flex items-center gap-2 rounded-full border border-champagne-line bg-white px-5 py-2.5 text-sm font-medium text-obsidian transition-colors hover:border-champagne whitespace-nowrap shrink-0"
+          >
+            <i data-lucide="printer" class="h-4 w-4"></i>
+            <span x-text="t('btnPrintPdf')"></span>
+          </button>
+
+          <button
+            type="button"
+            @click="copySummaryToClipboard()"
+            class="inline-flex items-center gap-2 rounded-full bg-obsidian px-5 py-2.5 text-sm font-medium text-pearl transition-colors hover:bg-obsidian/90 whitespace-nowrap shrink-0"
+          >
+            <i data-lucide="copy" class="h-4 w-4 text-champagne"></i>
+            <span x-text="copiedSummary ? t('btnCopiedSummary') : t('btnCopySummary')"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
