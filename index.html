@@ -145,6 +145,11 @@
       import bosphorusPalace from '/src/assets/images/venue_bosphorus_palace_1794746162314.jpg';
       import tuscanEstate from '/src/assets/images/venue_tuscan_estate_1794746162354.jpg';
       import modernAtelier from '/src/assets/images/venue_modern_atelier_1794746162634.jpg';
+      import * as calc from '/src/calc.js';
+      import * as persist from '/src/persist.js';
+
+      window.__CALC__ = calc;
+      window.__PERSIST__ = persist;
 
       window.__VENUE_COVERS__ = {
         lakeVilla,
@@ -213,6 +218,9 @@
           btnChooseFile: 'Çoklu Dosya Seç veya Sürükle',
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
+          btnBackupExport: 'Yedeği İndir',
+          btnBackupImport: 'Yedeği Yükle',
+          autosaveNote: 'Kartlarınız bu tarayıcıda otomatik kaydedilir.',
           ocrTitle: 'Yüklenen Belgeler İnceleniyor',
           ocrStatusPending: 'Sırada',
           ocrStatusScanning: 'Okunuyor...',
@@ -293,6 +301,7 @@
           newFlagLabelPlaceholder: 'Kalem adı (Örn: KDV +%20, DJ, Servis)',
           newFlagTypeFixed: 'Sabit (€)',
           newFlagTypePerGuest: 'Kişi Başı (€)',
+          newFlagTypeService: 'Servis Bedeli (%)',
           newFlagTypeVat: 'Oran / KDV (%)',
           newFlagAmountPlaceholder: 'Tutar veya %',
           btnSaveNewFlag: 'Kalemi Ekle',
@@ -317,6 +326,8 @@
           btnCopiedSummary: 'Panoya Kopyalandı ✓',
           perGuestShort: 'kişi',
           toastReset: 'Tüm kartlar temizlendi. Yeni tekliflerinizi yükleyebilirsiniz.',
+          toastImported: 'Yedek yüklendi. Teklif görselleri yedeğe dahil değildir.',
+          toastImportFailed: 'Bu dosya geçerli bir yedek değil.',
           toastVenueAdded: 'mekan teklifi okundu ve karşılaştırmaya eklendi.',
           toastVendorAutoMatched: 'teklifi otomatik olarak şu karta eklendi:',
           toastVendorAssigned: 'ek hizmet teklifi seçili mekana eklendi.',
@@ -344,6 +355,9 @@
           btnChooseFile: 'Select or Drop Multiple Files',
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
+          btnBackupExport: 'Download Backup',
+          btnBackupImport: 'Restore Backup',
+          autosaveNote: 'Your cards are saved automatically in this browser.',
           ocrTitle: 'Decoding Uploaded Quotes',
           ocrStatusPending: 'Queued',
           ocrStatusScanning: 'Reading...',
@@ -424,6 +438,7 @@
           newFlagLabelPlaceholder: 'Item name (e.g. VAT +20%, Service, DJ)',
           newFlagTypeFixed: 'Fixed (€)',
           newFlagTypePerGuest: 'Per Guest (€)',
+          newFlagTypeService: 'Service Charge (%)',
           newFlagTypeVat: 'Percentage / VAT (%)',
           newFlagAmountPlaceholder: 'Amount or %',
           btnSaveNewFlag: 'Add Item',
@@ -448,6 +463,8 @@
           btnCopiedSummary: 'Copied to Clipboard ✓',
           perGuestShort: 'guest',
           toastReset: 'All cards cleared. Upload your new quotes anytime.',
+          toastImported: 'Backup restored. Quote screenshots are not part of backups.',
+          toastImportFailed: 'This file is not a valid backup.',
           toastVenueAdded: 'venue quote(s) decoded and added to comparison.',
           toastVendorAutoMatched: 'quote automatically attached to:',
           toastVendorAssigned: 'vendor quote added to selected venue.',
@@ -508,9 +525,62 @@
           toastVisible: false,
 
           init() {
+            const P = window.__PERSIST__;
+            try {
+              const saved = P.parseState(localStorage.getItem(P.STORAGE_KEY));
+              if (saved) {
+                Object.assign(this, saved);
+                document.documentElement.lang = this.lang;
+                document.title = this.t('pageTitle');
+              }
+            } catch {
+              // localStorage unavailable (private mode / blocked)
+            }
+
+            let saveTimer = null;
+            this.$watch(
+              () => P.serializeState(this),
+              (json) => {
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(() => {
+                  try {
+                    localStorage.setItem(P.STORAGE_KEY, json);
+                  } catch {
+                    // quota exceeded or storage blocked: keep working in memory
+                  }
+                }, 300);
+              }
+            );
+
             this.$nextTick(() => {
               if (window.lucide) window.lucide.createIcons();
             });
+          },
+
+          exportBackup() {
+            const json = window.__PERSIST__.serializeState(this);
+            const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `wedding-quotes-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+          },
+
+          async importBackup(event) {
+            const file = event.target?.files?.[0];
+            event.target.value = '';
+            if (!file) return;
+            const restored = window.__PERSIST__.parseState(await file.text());
+            if (!restored) {
+              this.showToast(this.t('toastImportFailed'));
+              return;
+            }
+            Object.assign(this, restored);
+            document.documentElement.lang = this.lang;
+            document.title = this.t('pageTitle');
+            this.refreshIcons();
+            this.showToast(this.t('toastImported'));
           },
 
           t(key) {
@@ -736,69 +806,11 @@
           },
 
           getFlagAmountEur(venue, flag) {
-            if (flag.type !== 'risk') return 0;
-            if (flag.calcType === 'fixed') return Number(flag.amount) || 0;
-            if (flag.calcType === 'per_guest') return (Number(flag.amount) || 0) * this.guestCount;
-            if (flag.calcType === 'vendor_vat_pct') {
-              const vBase = (Number(flag.vendorBaseEur) || 0) + (Number(flag.vendorPerGuestEur) || 0) * this.guestCount;
-              return (vBase * (Number(flag.amount) || 0)) / 100;
-            }
-            if (flag.calcType === 'vat_pct') {
-              const base = Number(venue.baseFeeEur) || 0;
-              const fbSubtotal = (Number(venue.fbPerPersonEur) || 0) * this.guestCount;
-              const fixedAndGuest = venue.flags
-                .filter((f) => f.type === 'risk' && f.active && f.calcType !== 'vat_pct' && f.calcType !== 'vendor_vat_pct')
-                .reduce(
-                  (sum, f) =>
-                    sum + (f.calcType === 'per_guest' ? (Number(f.amount) || 0) * this.guestCount : Number(f.amount) || 0),
-                  0
-                );
-              return ((base + fbSubtotal + fixedAndGuest) * (Number(flag.amount) || 0)) / 100;
-            }
-            return 0;
+            return window.__CALC__.getFlagAmountEur(venue, flag, this.guestCount);
           },
 
           calculateBreakdown(venue) {
-            const baseFeeEur = Number(venue.baseFeeEur) || 0;
-            const fbPerPersonEur = Number(venue.fbPerPersonEur) || 0;
-            const fbSubtotalEur = fbPerPersonEur * this.guestCount;
-            let fixedAndGuestExtrasEur = 0;
-            let vendorVatExtrasEur = 0;
-            let vatAmountEur = 0;
-
-            venue.flags.forEach((flag) => {
-              if (flag.type === 'risk' && flag.active) {
-                if (flag.calcType === 'fixed') {
-                  fixedAndGuestExtrasEur += Number(flag.amount) || 0;
-                } else if (flag.calcType === 'per_guest') {
-                  fixedAndGuestExtrasEur += (Number(flag.amount) || 0) * this.guestCount;
-                } else if (flag.calcType === 'vendor_vat_pct') {
-                  const vBase = (Number(flag.vendorBaseEur) || 0) + (Number(flag.vendorPerGuestEur) || 0) * this.guestCount;
-                  vendorVatExtrasEur += (vBase * (Number(flag.amount) || 0)) / 100;
-                }
-              }
-            });
-
-            const taxableBaseEur = baseFeeEur + fbSubtotalEur + fixedAndGuestExtrasEur;
-
-            venue.flags.forEach((flag) => {
-              if (flag.type === 'risk' && flag.active && flag.calcType === 'vat_pct') {
-                vatAmountEur += (taxableBaseEur * (Number(flag.amount) || 0)) / 100;
-              }
-            });
-
-            const hiddenExtrasTotalEur = fixedAndGuestExtrasEur + vendorVatExtrasEur + vatAmountEur;
-            const turnkeyTotalEur = baseFeeEur + fbSubtotalEur + hiddenExtrasTotalEur;
-            const effectivePerGuestEur = turnkeyTotalEur / Math.max(1, this.guestCount);
-
-            return {
-              fbSubtotalEur,
-              fixedAndGuestExtrasEur,
-              vatAmountEur,
-              hiddenExtrasTotalEur,
-              turnkeyTotalEur,
-              effectivePerGuestEur,
-            };
+            return window.__CALC__.calculateBreakdown(venue, this.guestCount);
           },
 
           getBudgetDistribution(venue) {
@@ -824,18 +836,15 @@
           },
 
           getLowestTotalEur() {
-            if (!this.venues.length) return 0;
-            return Math.min(...this.venues.map((v) => this.calculateBreakdown(v).turnkeyTotalEur));
+            return window.__CALC__.getLowestTotalEur(this.venues, this.guestCount);
           },
 
           getDeltaFromLowest(venue) {
-            const total = this.calculateBreakdown(venue).turnkeyTotalEur;
-            return total - this.getLowestTotalEur();
+            return window.__CALC__.getDeltaFromLowest(venue, this.venues, this.guestCount);
           },
 
           isBestValue(venue) {
-            if (this.venues.length < 2) return false;
-            return Math.round(this.getDeltaFromLowest(venue)) === 0;
+            return window.__CALC__.isBestValue(venue, this.venues, this.guestCount);
           },
 
           resolveFlagCategory(flag) {
@@ -922,7 +931,7 @@
                   });
 
             const suffix =
-              calcType === 'vat_pct'
+              calcType === 'vat_pct' || calcType === 'service_pct'
                 ? `(+%${amt})`
                 : calcType === 'per_guest'
                   ? `(+€${amt} / ${this.lang === 'tr' ? 'kişi' : 'guest'})`
@@ -1070,7 +1079,8 @@
             const vendorName = (v.name || '').trim();
             const rawFlags = Array.isArray(v.flags) ? v.flags : [];
 
-            const serviceItems = rawFlags.filter((f) => f.type !== 'safe' && f.calcType !== 'vat_pct');
+            const isPctItem = (f) => f.calcType === 'vat_pct' || f.calcType === 'service_pct';
+            const serviceItems = rawFlags.filter((f) => f.type !== 'safe' && !isPctItem(f));
             if (serviceItems.length === 0 && ((Number(v.baseFeeEur) || 0) > 0 || (Number(v.fbPerPersonEur) || 0) > 0)) {
               if ((Number(v.baseFeeEur) || 0) > 0) {
                 serviceItems.push({
@@ -1116,7 +1126,7 @@
             }
 
             const vatItems = rawFlags
-              .filter((f) => f.type !== 'safe' && f.calcType === 'vat_pct')
+              .filter((f) => f.type !== 'safe' && isPctItem(f))
               .map((f) => ({
                 ...f,
                 calcType: 'vendor_vat_pct',
@@ -1279,7 +1289,7 @@
               baseFeeEur: addon.baseFeeEur,
               fbPerPersonEur: addon.fbPerPersonEur,
               flags: addon.rawFlags
-                .filter((f) => f.calcType === 'vat_pct' || f.type === 'safe')
+                .filter((f) => f.calcType === 'vat_pct' || f.calcType === 'service_pct' || f.type === 'safe')
                 .map((f, idx) => ({
                   id: `${uid}-f-${idx}`,
                   category: CANONICAL_CATEGORY_ORDER.includes(f.category) ? f.category : undefined,
@@ -1441,7 +1451,7 @@
                           type: f.type === 'safe' ? 'safe' : 'risk',
                           label: f.label || { tr: 'Ek Kalem', en: 'Additional Item' },
                           detail: f.detail || { tr: '', en: '' },
-                          calcType: ['fixed', 'per_guest', 'vat_pct'].includes(f.calcType) ? f.calcType : 'fixed',
+                          calcType: ['fixed', 'per_guest', 'service_pct', 'vat_pct'].includes(f.calcType) ? f.calcType : 'fixed',
                           amount: Number(f.amount) || 0,
                           active: Boolean(f.active),
                         }))
@@ -1779,7 +1789,24 @@
               >
                 <span x-text="t('btnReset')"></span>
               </button>
+
+              <button
+                type="button"
+                x-show="venues.length > 0"
+                @click="exportBackup()"
+                class="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-medium text-stone transition-colors hover:bg-champagne-soft hover:text-obsidian whitespace-nowrap shrink-0"
+              >
+                <span x-text="t('btnBackupExport')"></span>
+              </button>
+
+              <label
+                class="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-medium text-stone transition-colors hover:bg-champagne-soft hover:text-obsidian whitespace-nowrap shrink-0"
+              >
+                <span x-text="t('btnBackupImport')"></span>
+                <input type="file" accept="application/json,.json" class="sr-only" @change="importBackup($event)" />
+              </label>
             </div>
+            <p class="mt-3 text-[11px] text-stone" x-show="venues.length > 0" x-text="t('autosaveNote')"></p>
 
             <!-- Failed Files Recovery List -->
             <div
@@ -2127,7 +2154,7 @@
                         x-text="t('bestValueBadge')"
                       ></span>
                       <span
-                        x-show="!isBestValue(venue) && venues.length > 1"
+                        x-show="!isBestValue(venue) && getDeltaFromLowest(venue) > 0"
                         class="inline-flex items-center rounded-full border border-white/25 bg-obsidian/75 px-3 py-1 text-[11px] font-medium text-pearl tabular-nums backdrop-blur-md whitespace-nowrap"
                         x-text="`+${formatCurrency(getDeltaFromLowest(venue))} ${t('deltaSuffix')}`"
                       ></span>
@@ -2563,7 +2590,8 @@
                             >
                               <option value="fixed" x-text="t('newFlagTypeFixed')"></option>
                               <option value="per_guest" x-text="t('newFlagTypePerGuest')"></option>
-                              <option value="vat_pct" x-text="t('newFlagTypeVat')"></option>
+                            <option value="service_pct" x-text="t('newFlagTypeService')"></option>
+                            <option value="vat_pct" x-text="t('newFlagTypeVat')"></option>
                             </select>
                             <input
                               type="number"

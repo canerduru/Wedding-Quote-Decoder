@@ -607,11 +607,12 @@ const quoteResponseSchema = {
           },
           calcType: {
             type: Type.STRING,
-            description: 'Must be "fixed", "per_guest", or "vat_pct". For "safe" items use "fixed" with amount 0.',
+            description:
+              'Must be "fixed", "per_guest", "service_pct", or "vat_pct". Use "service_pct" for a percentage service charge / service fee (servis bedeli, service charge, gratuity) and "vat_pct" only for VAT/KDV/IVA/taxes. For "safe" items use "fixed" with amount 0.',
           },
           amount: {
             type: Type.NUMBER,
-            description: 'Numeric value in EUR (for fixed or per_guest) or percentage number like 20 or 22 (for vat_pct). 0 for safe items.',
+            description: 'Numeric value in EUR (for fixed or per_guest) or percentage number like 10 or 20 (for service_pct or vat_pct). 0 for safe items.',
           },
           active: {
             type: Type.BOOLEAN,
@@ -674,6 +675,7 @@ Rules:
    - GBP (£): divide by 0.85
 4. Pricing & Category Alignment Extraction:
    - For EVERY item in flags[], set 'category' accurately to one of: 'tax', 'catering', 'music', 'floral', 'boat', 'photo', or 'other'.
+   - SERVICE CHARGE RULE: a percentage service charge/fee (e.g. "servis %10", "service charge 12%") MUST use calcType="service_pct" (category="other"), NEVER "vat_pct". Only taxes use "vat_pct".
    - For 'venue': put fixed venue rental in baseFeeEur, per-guest menu price in fbPerPersonEur. Put hidden costs, excluded VAT/KDV/IVA (category="tax", calcType="vat_pct"), service fees, SIAE/music (category="music"), external catering requirements (category="catering"), etc. in flags[].
    - IMPORTANT TAX RULE: If a venue quote explicitly states that VAT/KDV/IVA or taxes ARE INCLUDED (e.g., "KDV dahil", "VAT included", "IVA inclusa"), ALWAYS include a flag with category="tax", type="safe", calcType="fixed", amount=0, active=false (e.g., label.tr="KDV / Vergi Dahil", label.en="VAT / Taxes Included") so it aligns side-by-side with quotes where tax is excluded!
    - For 'vendor_addon': put fixed service total in baseFeeEur and any per-guest service cost in fbPerPersonEur. ALSO populate flags[] with the main service package line item (category matching vendorCategory, type="risk", active=true, calcType="fixed" or "per_guest", exact EUR amount) plus any separate setup/delivery fees and any excluded VAT/KDV/IVA (category="tax", type="risk", calcType="vat_pct", active=true) so it can be cleanly injected into a venue card as itemized rows. Do NOT double-count the same service fee across multiple flags.
