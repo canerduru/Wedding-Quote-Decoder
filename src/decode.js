@@ -121,7 +121,9 @@ const RESPONSE_SCHEMA = {
           },
           type: {
             type: 'STRING',
-            description: 'Must be either "risk" (for extra cost/excluded tax/vendor service fee) or "safe" (for included perk/protection).',
+            enum: ['risk', 'safe', 'info'],
+            description:
+              'Must be "risk" (extra cost, excluded tax, vendor service fee, or a required item the price of which is not stated), "safe" (included perk/protection), or "info" (a restriction, condition or policy with no price impact).',
           },
           label: {
             type: 'OBJECT',
@@ -205,7 +207,11 @@ Rules:
    - validUntil: the date the quote stays valid as YYYY-MM-DD, or '' if not stated.
    - Small recurring charges (overtime, corkage, cake cutting, cleaning, extra hours) are hidden costs: put each as its own flag.
    - NEVER invent terms. Missing information must stay 0 or empty so the app can show it as not stated.
-6. Return clean, natural Turkish AND English labels and explanations.`;
+6. Flag types:
+   - type="risk": any extra or excluded cost. If the document says something is NOT included, mandatory or extra but gives NO price (e.g. "music not included", "flowers extra", "room reservation required"), still return it as type="risk" with amount 0 and active=false so the application can ask the user for a price. NEVER invent an amount.
+   - type="safe": an included perk or protection (e.g. VAT included, rain plan included).
+   - type="info": a restriction, condition or policy that has no price impact (e.g. "drone requires a permit", "pier only for hotel guests", time limits). Use calcType="fixed", amount 0, active=false.
+7. Return clean, natural Turkish AND English labels and explanations.`;
 
 export class DecodeError extends Error {
   constructor(code, message) {

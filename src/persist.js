@@ -20,7 +20,7 @@ function sanitizeFlag(raw, index) {
   const calcType = CALC_TYPES.includes(raw?.calcType) ? raw.calcType : 'fixed';
   const flag = {
     id: str(raw?.id) || `flag-${index}`,
-    type: raw?.type === 'safe' ? 'safe' : 'risk',
+    type: raw?.type === 'safe' || raw?.type === 'info' ? raw.type : 'risk',
     label: biText(raw?.label),
     detail: biText(raw?.detail),
     calcType,

@@ -69,3 +69,24 @@ test('minimum harcama ve gecerlilik alanlari tabloya tasinir, toplam altindaysa 
   assert.equal(columns[0].validUntil, '2026-11-20');
   assert.equal(columns[2].validUntil, '');
 });
+
+test('kategori hucreleri: fiyatsiz kalem needs_price, bilgi notlari sayilmaz', () => {
+  const a = venue('A', 1000, 0, [{ type: 'risk', active: false, category: 'music', calcType: 'fixed', amount: 0 }]);
+  const b = venue('B', 1000, 0, [{ type: 'info', active: false, category: 'music', calcType: 'fixed', amount: 0 }]);
+  const c = venue('C', 1000, 0, [
+    { type: 'risk', active: false, category: 'music', calcType: 'fixed', amount: 0 },
+    safe('music'),
+  ]);
+  const { columns } = build([a, b, c]);
+  assert.deepEqual(columns[0].cells.music, { kind: 'needs_price' });
+  assert.deepEqual(columns[1].cells.music, { kind: 'missing' });
+  assert.deepEqual(columns[2].cells.music, { kind: 'included' });
+});
+
+test('eksiklik alanlari tablo kolonuna tasinir', () => {
+  const a = venue('A', 0, 0, [{ type: 'risk', active: false, category: 'other', calcType: 'fixed', amount: 0 }]);
+  const [col] = build([a, venue('B', 1000, 50)]).columns;
+  assert.equal(col.rentMissing, true);
+  assert.equal(col.foodMissing, true);
+  assert.equal(col.needsPriceCount, 1);
+});

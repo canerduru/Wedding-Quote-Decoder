@@ -159,3 +159,13 @@ test('teklif kosullari korunur ve bozuk degerler temizlenir', () => {
   assert.equal(bad.validUntil, '');
   assert.equal(parseState(serializeState(state())).venues[0].minimumSpendEur, 0);
 });
+
+test('kalem turu info korunur, bilinmeyen tur risk olur', () => {
+  const st = state();
+  st.venues[0].flags.push({ id: 'i1', type: 'info', label: { tr: 'Drone izni', en: 'Drone permit' }, detail: { tr: '', en: '' }, calcType: 'fixed', amount: 0, active: false });
+  const out = parseState(serializeState(st)).venues[0];
+  assert.equal(out.flags[1].type, 'info');
+  const raw = JSON.parse(serializeState(st));
+  raw.venues[0].flags[1].type = 'evil';
+  assert.equal(parseState(JSON.stringify(raw)).venues[0].flags[1].type, 'risk');
+});
