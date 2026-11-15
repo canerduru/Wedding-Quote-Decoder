@@ -99,3 +99,17 @@ test('bos yanit ve taninmayan hata FAILED olur', async () => {
   await assert.rejects(decodeQuote(harness(MODELS.map(() => empty)).args), { code: 'FAILED' });
   await assert.rejects(decodeQuote(harness([fail(400, 'INVALID_ARGUMENT', 'Request payload size exceeds the limit')]).args), { code: 'FAILED' });
 });
+
+test('sema para birimini ister ve cevirme isini modele birakmaz', async () => {
+  const h = harness([ok()]);
+  await decodeQuote(h.args);
+  const { generationConfig, contents } = h.calls[0].body;
+  const schema = generationConfig.responseSchema;
+  assert.ok(schema.required.includes('currency'));
+  assert.deepEqual(schema.properties.currency.enum, ['EUR', 'TRY', 'USD', 'GBP', 'OTHER']);
+  assert.ok(schema.required.includes('baseFee') && schema.required.includes('fbPerPerson'));
+  assert.ok(!('baseFeeEur' in schema.properties) && !('fbPerPersonEur' in schema.properties));
+  const prompt = contents[0].parts[1].text;
+  assert.ok(!/38\.5|1\.08|0\.85|divide by/i.test(prompt));
+  assert.match(prompt, /ORIGINAL currency/);
+});

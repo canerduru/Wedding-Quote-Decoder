@@ -151,12 +151,14 @@
       import * as decode from '/src/decode.js';
       import * as photo from '/src/photo.js';
       import * as apikey from '/src/apikey.js';
+      import * as rates from '/src/rates.js';
 
       window.__CALC__ = calc;
       window.__PERSIST__ = persist;
       window.__DECODE__ = decode;
       window.__PHOTO__ = photo;
       window.__APIKEY__ = apikey;
+      window.__RATES__ = rates;
 
       window.Alpine = Alpine;
       Alpine.start();
@@ -263,7 +265,10 @@
           replacedByNote: 'Gerçek teklifle değiştirildi',
           guestLabel: 'Misafir Sayısı',
           guestUnit: 'Kişi',
-          refRate: 'Referans Kur: 1 € = 38,50 ₺',
+          refRateLabel: 'Kur: 1 € =',
+          rateSourceDefault: 'ECB referans kuru',
+          rateSourceEdited: 'elle girilen kur',
+          rateInputLabel: 'Euro/TL kuru',
           activeVenuesLabel: 'mekan karşılaştırılıyor',
           comparisonTitle: 'Mekan Karşılaştırma Koleksiyonu',
           comparisonSubtitleTail:
@@ -345,6 +350,8 @@
           btnCopiedSummary: 'Panoya Kopyalandı ✓',
           perGuestShort: 'kişi',
           toastReset: 'Tüm kartlar temizlendi. Yeni tekliflerinizi yükleyebilirsiniz.',
+          toastCurrencyUnknown: 'Belgenin para birimi tanınamadı, tutarlar € kabul edildi. Rakamları kontrol edin.',
+          toastRateInvalid: 'Kur sıfırdan büyük bir sayı olmalı.',
           toastKeyNeeded: 'Önce Gemini API anahtarınızı girin.',
           toastKeySaved: 'Anahtar kaydedildi.',
           toastKeyRemoved: 'Anahtar silindi.',
@@ -413,7 +420,10 @@
           replacedByNote: 'Replaced by uploaded quote',
           guestLabel: 'Guest Count',
           guestUnit: 'Guests',
-          refRate: 'Reference Rate: 1 € = 38.50 ₺',
+          refRateLabel: 'Rate: 1 € =',
+          rateSourceDefault: 'ECB reference rate',
+          rateSourceEdited: 'manually entered rate',
+          rateInputLabel: 'Euro/TRY rate',
           activeVenuesLabel: 'venues compared',
           comparisonTitle: 'Curated Venue Comparison',
           comparisonSubtitleTail:
@@ -495,6 +505,8 @@
           btnCopiedSummary: 'Copied to Clipboard ✓',
           perGuestShort: 'guest',
           toastReset: 'All cards cleared. Upload your new quotes anytime.',
+          toastCurrencyUnknown: 'Could not recognise the document currency; amounts were treated as €. Please check the figures.',
+          toastRateInvalid: 'The rate must be a number greater than zero.',
           toastKeyNeeded: 'Enter your Gemini API key first.',
           toastKeySaved: 'Key saved.',
           toastKeyRemoved: 'Key removed.',
@@ -547,7 +559,7 @@
           lang: 'tr',
           guestCount: 120,
           currency: 'EUR',
-          exchangeRate: 38.5,
+          exchangeRate: window.__RATES__.DEFAULT_RATES.TRY,
           canonicalCategories: CANONICAL_CATEGORY_ORDER,
           venues: [],
           pendingVendorAddons: [],
@@ -601,6 +613,34 @@
             this.$nextTick(() => {
               if (window.lucide) window.lucide.createIcons();
             });
+          },
+
+          fxRates() {
+            return { ...window.__RATES__.DEFAULT_RATES, TRY: this.exchangeRate };
+          },
+
+          rateSourceText() {
+            const R = window.__RATES__.DEFAULT_RATES;
+            if (this.exchangeRate !== R.TRY) return this.t('rateSourceEdited');
+            const date = new Date(`${R.date}T00:00:00`).toLocaleDateString(this.lang === 'tr' ? 'tr-TR' : 'en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            });
+            return `${this.t('rateSourceDefault')} · ${date}`;
+          },
+
+          setTryRate(event) {
+            const value = Number(String(event.target.value).replace(',', '.'));
+            if (!Number.isFinite(value) || value <= 0) {
+              event.target.value = this.exchangeRate;
+              this.showToast(this.t('toastRateInvalid'));
+              return;
+            }
+            const old = this.exchangeRate;
+            this.venues.forEach((v) => window.__RATES__.rescaleSource(v, 'TRY', old, value));
+            this.pendingVendorAddons.forEach((a) => window.__RATES__.rescaleSource(a, 'TRY', old, value));
+            this.exchangeRate = value;
           },
 
           needKey() {
@@ -1058,6 +1098,7 @@
             if ((Number(target.fbPerPersonEur) || 0) === 0 && (Number(source.fbPerPersonEur) || 0) > 0) {
               target.fbPerPersonEur = source.fbPerPersonEur;
             }
+            if (!target.sourceCurrency) target.sourceCurrency = source.sourceCurrency || '';
             if (!target.uploadedPreviewUrl && source.uploadedPreviewUrl) {
               target.uploadedPreviewUrl = source.uploadedPreviewUrl;
             }
@@ -1165,6 +1206,7 @@
                   type: 'risk',
                   calcType: 'fixed',
                   amount: Number(v.baseFeeEur),
+                  sourceCurrency: v.sourceCurrency,
                   active: true,
                   label: {
                     tr: vendorName || VENDOR_CATEGORY_META[category].fullTitle.tr,
@@ -1178,6 +1220,7 @@
                   type: 'risk',
                   calcType: 'per_guest',
                   amount: Number(v.fbPerPersonEur),
+                  sourceCurrency: v.sourceCurrency,
                   active: true,
                   label: {
                     tr: `${vendorName || VENDOR_CATEGORY_META[category].fullTitle.tr} (Kişi Başı)`,
@@ -1213,6 +1256,7 @@
               }));
 
             const safeItems = rawFlags.filter((f) => f.type === 'safe');
+            const itemizedFlags = [...serviceItems, ...vatItems, ...safeItems];
 
             return {
               id: 'addon-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
@@ -1226,7 +1270,9 @@
               baseFeeEur: vendorTaxBaseFixed,
               fbPerPersonEur: vendorTaxBasePerGuest,
               rawFlags,
-              itemizedFlags: [...serviceItems, ...vatItems, ...safeItems],
+              itemizedFlags,
+              flags: itemizedFlags,
+              sourceCurrency: v.sourceCurrency || '',
             };
           },
 
@@ -1298,6 +1344,7 @@
                 amount: Number(f.amount) || 0,
                 vendorBaseEur: Number(f.vendorBaseEur) || 0,
                 vendorPerGuestEur: Number(f.vendorPerGuestEur) || 0,
+                sourceCurrency: f.sourceCurrency,
                 active: f.type === 'safe' ? false : Boolean(f.active),
               });
             });
@@ -1364,6 +1411,7 @@
                 tr: `Dosya: ${addon.fileName}${addon.originalCurrencyNote?.tr ? ' · ' + addon.originalCurrencyNote.tr : ''}`,
                 en: `File: ${addon.fileName}${addon.originalCurrencyNote?.en ? ' · ' + addon.originalCurrencyNote.en : ''}`,
               },
+              sourceCurrency: addon.sourceCurrency || '',
               baseFeeEur: addon.baseFeeEur,
               fbPerPersonEur: addon.fbPerPersonEur,
               flags: addon.rawFlags
@@ -1376,6 +1424,7 @@
                   detail: f.detail,
                   calcType: f.calcType,
                   amount: Number(f.amount) || 0,
+                  sourceCurrency: f.sourceCurrency,
                   active: Boolean(f.active),
                 })),
             });
@@ -1447,6 +1496,7 @@
             let vendorQueuedCount = 0;
             let hasError = false;
             let lastAutoAttachMsg = '';
+            let currencyWarned = false;
 
             for (let i = 0; i < files.length; i++) {
               const file = files[i];
@@ -1477,7 +1527,8 @@
                   throw decodeErr;
                 }
 
-                const v = payload.venue;
+                const v = window.__RATES__.convertDecoded(payload.venue, this.fxRates());
+                if (v.currencyUnknown) currencyWarned = true;
 
                 if (targetVenueId) {
                   const addon = this.buildVendorAddonObject(v, file.name);
@@ -1528,6 +1579,7 @@
                       tr: `Dosya: ${file.name}${v.originalCurrencyNote?.tr ? ' · ' + v.originalCurrencyNote.tr : ''}`,
                       en: `File: ${file.name}${v.originalCurrencyNote?.en ? ' · ' + v.originalCurrencyNote.en : ''}`,
                     },
+                    sourceCurrency: v.sourceCurrency,
                     baseFeeEur: Number(v.baseFeeEur) || 0,
                     fbPerPersonEur: Number(v.fbPerPersonEur) || 0,
                     flags: Array.isArray(v.flags)
@@ -1539,6 +1591,7 @@
                           detail: f.detail || { tr: '', en: '' },
                           calcType: ['fixed', 'per_guest', 'service_pct', 'vat_pct'].includes(f.calcType) ? f.calcType : 'fixed',
                           amount: Number(f.amount) || 0,
+                          sourceCurrency: f.sourceCurrency,
                           active: Boolean(f.active),
                         }))
                       : [],
@@ -1577,7 +1630,9 @@
               this.cardScanningId = null;
               this.refreshIcons();
 
-              if (targetVenueId && vendorAutoAttachedCount > 0) {
+              if (currencyWarned) {
+                this.showToast(this.t('toastCurrencyUnknown'));
+              } else if (targetVenueId && vendorAutoAttachedCount > 0) {
                 this.showToast(this.t('toastVendorAssigned'));
               } else if (lastAutoAttachMsg) {
                 this.showToast(lastAutoAttachMsg);
@@ -1661,12 +1716,12 @@
             if (this.lang === 'tr') {
               lines.push('WEDDING QUOTE DECODER — KARŞILAŞTIRMA ÖZETİ');
               lines.push(
-                `Misafir Sayısı: ${this.guestCount} Kişi | Para Birimi: ${this.currency} (1 € = ${this.exchangeRate.toFixed(2).replace('.', ',')} ₺)`
+                `Misafir Sayısı: ${this.guestCount} Kişi | Para Birimi: ${this.currency} (1 € = ${this.exchangeRate.toLocaleString('tr-TR', { maximumFractionDigits: 4 })} ₺)`
               );
             } else {
               lines.push('WEDDING QUOTE DECODER — COMPARISON SUMMARY');
               lines.push(
-                `Guest Count: ${this.guestCount} Guests | Currency: ${this.currency} (1 € = ${this.exchangeRate.toFixed(2)} ₺)`
+                `Guest Count: ${this.guestCount} Guests | Currency: ${this.currency} (1 € = ${this.exchangeRate.toLocaleString('en-US', { maximumFractionDigits: 4 })} ₺)`
               );
             }
             lines.push('------------------------------------------------------------');
@@ -2109,7 +2164,19 @@
 
           <!-- Currency Toggle, Language Toggle & Reference Rate -->
           <div class="flex items-center justify-between gap-3 border-t border-champagne-soft pt-2 lg:border-t-0 lg:pt-0 shrink-0">
-            <span class="hidden text-xs text-stone tabular-nums xl:inline" x-text="t('refRate')"></span>
+            <label class="hidden items-center gap-1.5 text-xs text-stone xl:flex">
+              <span x-text="t('refRateLabel')"></span>
+              <input
+                type="text"
+                inputmode="decimal"
+                :value="exchangeRate"
+                @change="setTryRate($event)"
+                :aria-label="t('rateInputLabel')"
+                class="w-20 rounded-lg border border-champagne-line bg-white px-2 py-1 text-right text-xs tabular-nums text-obsidian focus:border-champagne focus:outline-none"
+              />
+              <span>₺</span>
+              <span class="text-[11px]" x-text="'· ' + rateSourceText()"></span>
+            </label>
 
             <div class="flex items-center gap-2.5 sm:gap-3">
               <span class="text-xs text-stone whitespace-nowrap">
@@ -2828,7 +2895,7 @@
             <strong class="font-semibold text-obsidian" x-text="currency"></strong>
           </span>
           <span aria-hidden="true">·</span>
-          <span class="tabular-nums" x-text="t('refRate')"></span>
+          <span class="tabular-nums" x-text="`${t('refRateLabel')} ${exchangeRate} ₺ · ${rateSourceText()}`"></span>
         </div>
 
         <div class="mt-5 space-y-4">

@@ -1,9 +1,12 @@
+import { DEFAULT_RATES } from './rates.js';
+
 export const STORAGE_KEY = 'wqd:v1';
 
 const VERSION = 1;
 const COVER_KEYS = ['lakeVilla', 'bosphorusPalace', 'tuscanEstate', 'modernAtelier'];
 const CATEGORIES = ['tax', 'catering', 'music', 'floral', 'boat', 'photo', 'other'];
 const CALC_TYPES = ['fixed', 'per_guest', 'service_pct', 'vat_pct', 'vendor_vat_pct'];
+const CURRENCIES = ['EUR', 'TRY', 'USD', 'GBP'];
 const PHOTO_URL_PREFIXES = ['https://upload.wikimedia.org/', 'https://thumb.wikimedia.org/'];
 
 const str = (v, fallback = '') => (typeof v === 'string' ? v : fallback);
@@ -30,6 +33,7 @@ function sanitizeFlag(raw, index) {
     flag.vendorBaseEur = num(raw.vendorBaseEur);
     flag.vendorPerGuestEur = num(raw.vendorPerGuestEur);
   }
+  if (CURRENCIES.includes(raw?.sourceCurrency)) flag.sourceCurrency = raw.sourceCurrency;
   if (raw?.replacedBy) flag.replacedBy = str(raw.replacedBy);
   return flag;
 }
@@ -58,6 +62,7 @@ function sanitizeVenue(raw) {
     venueType: biText(raw.venueType),
     capacityLabel: biText(raw.capacityLabel),
     sourceLabel: biText(raw.sourceLabel),
+    sourceCurrency: CURRENCIES.includes(raw.sourceCurrency) ? raw.sourceCurrency : '',
     baseFeeEur: num(raw.baseFeeEur),
     fbPerPersonEur: num(raw.fbPerPersonEur),
     flags: Array.isArray(raw.flags) ? raw.flags.map(sanitizeFlag) : [],
@@ -66,12 +71,12 @@ function sanitizeVenue(raw) {
 
 function sanitizeState(raw) {
   const guestCount = num(raw.guestCount, 120);
-  const exchangeRate = num(raw.exchangeRate, 38.5);
+  const exchangeRate = num(raw.exchangeRate, DEFAULT_RATES.TRY);
   return {
     lang: raw.lang === 'en' ? 'en' : 'tr',
     guestCount: guestCount > 0 ? guestCount : 120,
     currency: raw.currency === 'TRY' ? 'TRY' : 'EUR',
-    exchangeRate: exchangeRate > 0 ? exchangeRate : 38.5,
+    exchangeRate: exchangeRate > 0 ? exchangeRate : DEFAULT_RATES.TRY,
     venues: raw.venues.filter((v) => v && str(v.id)).map(sanitizeVenue),
   };
 }

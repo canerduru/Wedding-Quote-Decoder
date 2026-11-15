@@ -87,7 +87,7 @@ test('gecersiz alanlar guvenli varsayilanlara doner', () => {
   assert.equal(out.currency, 'EUR');
   assert.equal(out.lang, 'tr');
   assert.equal(out.guestCount, 120);
-  assert.equal(out.exchangeRate, 38.5);
+  assert.equal(out.exchangeRate, 55.6667);
 });
 
 test('dis kaynakli foto adresi ve bilinmeyen hesap tipi temizlenir', () => {
@@ -119,4 +119,20 @@ test('kimligi olmayan kart atlanir, eksik alanlar tamamlanir', () => {
   assert.deepEqual(out.venues[0].flags, []);
   assert.equal(out.venues[0].region.tr, '');
   assert.equal(out.venues[0].newFlag.calcType, 'fixed');
+});
+
+test('kaynak para birimi kart ve kalemde korunur, gecersizi temizlenir', () => {
+  const st = state();
+  st.venues[0].sourceCurrency = 'TRY';
+  st.venues[0].flags[0].sourceCurrency = 'USD';
+  const ok = parseState(serializeState(st)).venues[0];
+  assert.equal(ok.sourceCurrency, 'TRY');
+  assert.equal(ok.flags[0].sourceCurrency, 'USD');
+
+  const raw = JSON.parse(serializeState(st));
+  raw.venues[0].sourceCurrency = 'DOGE';
+  raw.venues[0].flags[0].sourceCurrency = 5;
+  const bad = parseState(JSON.stringify(raw)).venues[0];
+  assert.equal(bad.sourceCurrency, '');
+  assert.equal(bad.flags[0].sourceCurrency, undefined);
 });
