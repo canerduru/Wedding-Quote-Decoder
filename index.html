@@ -156,6 +156,7 @@
       import * as table from '/src/table.js';
       import * as terms from '/src/terms.js';
       import * as completeness from '/src/completeness.js';
+      import * as flagedit from '/src/flagedit.js';
 
       window.__CALC__ = calc;
       window.__PERSIST__ = persist;
@@ -167,6 +168,7 @@
       window.__TABLE__ = table;
       window.__TERMS__ = terms;
       window.__COMPLETE__ = completeness;
+      window.__FLAGEDIT__ = flagedit;
 
       window.Alpine = Alpine;
       Alpine.start();
@@ -239,6 +241,9 @@
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
           categoriesNotStated: 'Bu teklifte belirtilmeyenler (eklemek için dokunun):',
+          flagNameEditLabel: 'Kalem adı',
+          flagAmountEditLabel: 'Tutar',
+          toastAmountInvalid: 'Geçerli bir tutar girin (yüzde en çok 100).',
           termsStatedTotal: 'Teklifteki toplam',
           warnTotalMismatch: 'Hesaplanan toplam teklifteki toplamdan farklı. Seçtiğiniz ek kalemlerden ya da okuma hatasından olabilir; rakamları kontrol edin.',
           coverShow: 'Göster:',
@@ -438,6 +443,9 @@
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
           categoriesNotStated: 'Not stated in this quote (tap to add):',
+          flagNameEditLabel: 'Item name',
+          flagAmountEditLabel: 'Amount',
+          toastAmountInvalid: 'Enter a valid amount (percentages up to 100).',
           termsStatedTotal: 'Total stated in quote',
           warnTotalMismatch: 'The calculated total differs from the total in the quote. It can come from add-ons you selected or from a reading error; please check the figures.',
           coverShow: 'Show:',
@@ -740,15 +748,30 @@
           },
 
           setFlagPrice(venueId, flagId, event) {
-            const value = Number(event.target.value);
-            if (!(value > 0)) return;
             const venue = this.venues.find((v) => v.id === venueId);
             const flag = venue?.flags.find((f) => f.id === flagId);
             if (!flag) return;
-            const inTry = this.currency === 'TRY';
-            flag.amount = inTry ? value / this.exchangeRate : value;
-            flag.sourceCurrency = inTry ? 'TRY' : 'EUR';
-            flag.active = true;
+            const ok = window.__FLAGEDIT__.applyAmount(venue, flag, event.target.value, this.currency, this.exchangeRate);
+            if (ok && flag.amount > 0) flag.active = true;
+          },
+
+          flagEditValue(flag) {
+            return window.__FLAGEDIT__.displayAmount(flag, this.currency, this.exchangeRate);
+          },
+
+          flagUnitText(flag) {
+            const unit = window.__FLAGEDIT__.flagUnit(flag, this.currency);
+            return this.lang === 'tr' ? unit : unit.replace('kişi', 'guest');
+          },
+
+          setFlagAmount(venueId, flagId, event) {
+            const venue = this.venues.find((v) => v.id === venueId);
+            const flag = venue?.flags.find((f) => f.id === flagId);
+            if (!flag) return;
+            if (!window.__FLAGEDIT__.applyAmount(venue, flag, event.target.value, this.currency, this.exchangeRate)) {
+              event.target.value = this.flagEditValue(flag);
+              this.showToast(this.t('toastAmountInvalid'));
+            }
           },
 
           validityText(validUntil) {
@@ -2958,9 +2981,10 @@
                                   <!-- Risk / Vendor Service Row with iOS Tactile Toggle -->
                                   <template x-if="flag.type === 'risk' && !needsPrice(flag)">
                                     <div
-                                      class="flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-colors duration-200"
+                                      class="rounded-xl border transition-colors duration-200"
                                       :class="flag.active ? (flag.vendorCategory ? 'border-champagne-line bg-blush/75 text-obsidian' : 'border-[#FECDD3] bg-peony-bg/75 text-[#9F1239]') : 'border-champagne-soft bg-white/75 opacity-75'"
                                     >
+                                      <div class="flex items-center gap-2 px-3 py-2.5">
                                       <button
                                         type="button"
                                         role="switch"
@@ -3016,6 +3040,29 @@
                                       >
                                         ×
                                       </button>
+                                      </div>
+
+                                      <!-- Edit mode: fix a misread name or amount -->
+                                      <div x-show="venue.editing" x-cloak class="flex flex-wrap items-center gap-2 border-t border-champagne-soft/80 px-3 py-2">
+                                        <input
+                                          type="text"
+                                          maxlength="80"
+                                          x-model="flag.label[lang]"
+                                          :aria-label="t('flagNameEditLabel')"
+                                          class="min-w-0 flex-1 rounded-lg border border-champagne-line bg-white px-2 py-1 text-xs text-obsidian focus:border-champagne focus:outline-none"
+                                        />
+                                        <label class="flex items-center gap-1 text-[11px] text-stone">
+                                          <input
+                                            type="text"
+                                            inputmode="decimal"
+                                            :value="flagEditValue(flag)"
+                                            @change="setFlagAmount(venue.id, flag.id, $event)"
+                                            :aria-label="t('flagAmountEditLabel')"
+                                            class="w-24 rounded-lg border border-champagne-line bg-white px-2 py-1 text-right text-xs tabular-nums text-obsidian focus:border-champagne focus:outline-none"
+                                          />
+                                          <span class="whitespace-nowrap" x-text="flagUnitText(flag)"></span>
+                                        </label>
+                                      </div>
                                     </div>
                                   </template>
 
