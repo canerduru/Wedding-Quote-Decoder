@@ -6,6 +6,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import type { ViteDevServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
+import { createBasicAuth } from './src/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -641,6 +642,8 @@ const quoteResponseSchema = {
 
 async function startServer() {
   const app = express();
+  app.set('trust proxy', 1);
+  app.use(createBasicAuth({ password: process.env.APP_PASSWORD, isProduction: process.env.NODE_ENV === 'production' }));
   app.use(express.json({ limit: '25mb' }));
 
   app.post('/api/decode-quote', async (req, res) => {
