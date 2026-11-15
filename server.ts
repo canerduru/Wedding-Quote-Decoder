@@ -7,13 +7,14 @@ import { fileURLToPath } from 'url';
 import type { ViteDevServer } from 'vite';
 import { GoogleGenAI, Type } from '@google/genai';
 import { createBasicAuth } from './src/auth.js';
+import { classifyGeminiError, isKeyRequired, resolveApiKey } from './src/apikey.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function getAiClient() {
+function getAiClient(apiKey: string) {
   return new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
+    apiKey,
     httpOptions: {
       headers: {
         'User-Agent': 'aistudio-build',
@@ -391,11 +392,12 @@ function isBlockedPageHost(urlStr: string): boolean {
 
 async function searchOfficialWebsitePhoto(
   name: string,
-  region: string
+  region: string,
+  apiKey: string | null
 ): Promise<{ imageUrl: string; sourceUrl: string; sourceLabel: string } | null> {
-  if (!process.env.GEMINI_API_KEY) return null;
+  if (!apiKey) return null;
 
-  const ai = getAiClient();
+  const ai = getAiClient(apiKey);
   const cleanRegion = region && !/belirtilmedi|unspecified|şehir|city|manuel|manual/i.test(region) ? region : '';
   const searchPrompt = `Find the official website homepage or venue page URL for the wedding venue "${name}"${cleanRegion ? ` in "${cleanRegion}"` : ''}.
 Return ONLY a JSON object with this structure (no markdown fences):
@@ -643,8 +645,17 @@ const quoteResponseSchema = {
 async function startServer() {
   const app = express();
   app.set('trust proxy', 1);
-  app.use(createBasicAuth({ password: process.env.APP_PASSWORD, isProduction: process.env.NODE_ENV === 'production' }));
+  const privateMode = Boolean(process.env.APP_PASSWORD);
+  const serverKey = process.env.GEMINI_API_KEY;
+  app.use(createBasicAuth({ password: process.env.APP_PASSWORD }));
   app.use(express.json({ limit: '25mb' }));
+
+  const apiKeyFor = (req: express.Request) =>
+    resolveApiKey({ headerKey: req.get('x-gemini-key'), serverKey, privateMode });
+
+  app.get('/api/config', (_req, res) => {
+    res.json({ keyRequired: isKeyRequired({ privateMode, serverKey }) });
+  });
 
   app.post('/api/decode-quote', async (req, res) => {
     try {
@@ -654,8 +665,12 @@ async function startServer() {
         return;
       }
 
-      if (!process.env.GEMINI_API_KEY) {
-        res.status(500).json({ error: 'GEMINI_API_KEY is not configured on the server.' });
+      const apiKey = apiKeyFor(req);
+      if (!apiKey) {
+        res.status(401).json({
+          code: 'API_KEY_REQUIRED',
+          error: 'Bu belgeyi okumak için kendi Gemini API anahtarınızı girmeniz gerekir.',
+        });
         return;
       }
 
@@ -684,7 +699,7 @@ Rules:
    - For 'vendor_addon': put fixed service total in baseFeeEur and any per-guest service cost in fbPerPersonEur. ALSO populate flags[] with the main service package line item (category matching vendorCategory, type="risk", active=true, calcType="fixed" or "per_guest", exact EUR amount) plus any separate setup/delivery fees and any excluded VAT/KDV/IVA (category="tax", type="risk", calcType="vat_pct", active=true) so it can be cleanly injected into a venue card as itemized rows. Do NOT double-count the same service fee across multiple flags.
 5. Return clean, natural Turkish AND English labels and explanations.`;
 
-      const ai = getAiClient();
+      const ai = getAiClient(apiKey);
       const modelsToTry = ['gemini-4-hydrogen', 'gemini-4-hydrogen', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-lite'];
       let responseText = '';
       let usedModel = 'gemini-4-hydrogen';
@@ -740,6 +755,7 @@ Rules:
 
       if (!responseText) {
         const rawMsg = lastError instanceof Error ? lastError.message : 'Model temporarily unavailable.';
+        console.error('Decode quote model error:', rawMsg);
         const isOverloaded = rawMsg.includes('503') || rawMsg.includes('UNAVAILABLE') || rawMsg.includes('high demand');
         res.status(isOverloaded ? 503 : 502).json({
           error: isOverloaded
@@ -754,6 +770,13 @@ Rules:
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to decode quote.';
       console.error('Decode quote error:', message);
+      if (classifyGeminiError(message) === 'key_invalid') {
+        res.status(401).json({
+          code: 'API_KEY_INVALID',
+          error: 'Gemini API anahtarınız geçersiz görünüyor. Anahtarı kontrol edip yeniden girin.',
+        });
+        return;
+      }
       const isOverloaded = message.includes('503') || message.includes('UNAVAILABLE') || message.includes('high demand');
       res.status(isOverloaded ? 503 : 500).json({
         error: isOverloaded
@@ -774,7 +797,8 @@ Rules:
         return;
       }
 
-      const cacheKey = `${name.toLowerCase()}::${region.toLowerCase()}`;
+      const apiKey = apiKeyFor(req);
+      const cacheKey = `${apiKey ? 'k' : 'n'}::${name.toLowerCase()}::${region.toLowerCase()}`;
       if (!force) {
         const cached = venuePhotoCache.get(cacheKey);
         if (cached && cached.expiresAt > Date.now()) {
@@ -796,7 +820,7 @@ Rules:
         return;
       }
 
-      const officialMatch = await searchOfficialWebsitePhoto(name, region);
+      const officialMatch = await searchOfficialWebsitePhoto(name, region, apiKey);
       if (officialMatch) {
         const result: VenuePhotoResult = {
           found: true,

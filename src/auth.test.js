@@ -26,25 +26,18 @@ function run(middleware, { path = '/', authorization, ip = '1.2.3.4' } = {}) {
   return out;
 }
 
-test('sifre tanimli degilken gelistirme ortaminda acik', () => {
-  const mw = createBasicAuth({ password: undefined, isProduction: false });
-  assert.equal(run(mw).nextCalled, true);
-});
-
-test('sifre tanimli degilken uretimde kapali (503)', () => {
-  const mw = createBasicAuth({ password: '', isProduction: true });
-  const out = run(mw);
-  assert.equal(out.nextCalled, false);
-  assert.equal(out.status, 503);
+test('sifre tanimli degilken her ortamda acik (herkese acik mod)', () => {
+  assert.equal(run(createBasicAuth({ password: undefined })).nextCalled, true);
+  assert.equal(run(createBasicAuth({ password: '' })).nextCalled, true);
 });
 
 test('dogru sifre gecer, kullanici adi onemsiz', () => {
-  const mw = createBasicAuth({ password: 'gizli', isProduction: true });
+  const mw = createBasicAuth({ password: 'gizli' });
   assert.equal(run(mw, { authorization: basic('herhangi', 'gizli') }).nextCalled, true);
 });
 
 test('yanlis veya eksik sifre 401 ve giris penceresi tetikler', () => {
-  const mw = createBasicAuth({ password: 'gizli', isProduction: true });
+  const mw = createBasicAuth({ password: 'gizli' });
   for (const authorization of [undefined, basic('x', 'yanlis'), 'Bearer abc', 'Basic %%%']) {
     const out = run(mw, { authorization });
     assert.equal(out.nextCalled, false);
@@ -54,18 +47,18 @@ test('yanlis veya eksik sifre 401 ve giris penceresi tetikler', () => {
 });
 
 test('sifresinde iki nokta ust uste olan parola calisir', () => {
-  const mw = createBasicAuth({ password: 'a:b:c', isProduction: true });
+  const mw = createBasicAuth({ password: 'a:b:c' });
   assert.equal(run(mw, { authorization: basic('x', 'a:b:c') }).nextCalled, true);
 });
 
 test('/health sifresiz acik', () => {
-  const mw = createBasicAuth({ password: 'gizli', isProduction: true });
+  const mw = createBasicAuth({ password: 'gizli' });
   assert.equal(run(mw, { path: '/health' }).nextCalled, true);
 });
 
 test('ayni IP den cok sayida yanlis deneme 429 alir, dogru sifre de gecici engellenir', () => {
   let now = 1_000_000;
-  const mw = createBasicAuth({ password: 'gizli', isProduction: true, maxFailures: 3, windowMs: 60_000, now: () => now });
+  const mw = createBasicAuth({ password: 'gizli', maxFailures: 3, windowMs: 60_000, now: () => now });
   for (let i = 0; i < 3; i++) assert.equal(run(mw, { authorization: basic('x', 'yanlis') }).status, 401);
   assert.equal(run(mw, { authorization: basic('x', 'yanlis') }).status, 429);
   assert.equal(run(mw, { authorization: basic('x', 'gizli') }).status, 429);

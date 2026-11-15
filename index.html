@@ -218,6 +218,15 @@
           btnChooseFile: 'Çoklu Dosya Seç veya Sürükle',
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
+          keyTitle: 'Gemini API anahtarınızı girin',
+          keyBody:
+            'Teklifleri okumak için kendi Gemini anahtarınız kullanılır. Anahtar yalnızca bu tarayıcıda saklanır; her okumada bu sitenin sunucusuna iletilir ve sunucuda kaydedilmez.',
+          keyPlaceholder: 'AIza...',
+          keySave: 'Kaydet',
+          keyChange: 'Değiştir',
+          keyRemove: 'Sil',
+          keySavedLabel: 'Anahtar kayıtlı',
+          keyGetLink: 'Ücretsiz anahtar al (Google AI Studio)',
           btnBackupExport: 'Yedeği İndir',
           btnBackupImport: 'Yedeği Yükle',
           autosaveNote: 'Kartlarınız bu tarayıcıda otomatik kaydedilir.',
@@ -326,6 +335,10 @@
           btnCopiedSummary: 'Panoya Kopyalandı ✓',
           perGuestShort: 'kişi',
           toastReset: 'Tüm kartlar temizlendi. Yeni tekliflerinizi yükleyebilirsiniz.',
+          toastKeyNeeded: 'Önce Gemini API anahtarınızı girin.',
+          toastKeySaved: 'Anahtar kaydedildi.',
+          toastKeyRemoved: 'Anahtar silindi.',
+          toastKeyFormat: 'Anahtar geçerli görünmüyor. Google AI Studio’dan aldığınız anahtarı yapıştırın.',
           toastImported: 'Yedek yüklendi. Teklif görselleri yedeğe dahil değildir.',
           toastImportFailed: 'Bu dosya geçerli bir yedek değil.',
           toastVenueAdded: 'mekan teklifi okundu ve karşılaştırmaya eklendi.',
@@ -355,6 +368,15 @@
           btnChooseFile: 'Select or Drop Multiple Files',
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
+          keyTitle: 'Enter your Gemini API key',
+          keyBody:
+            'Quotes are read with your own Gemini key. It stays in this browser only; it is sent to this site\'s server with each read and is never stored there.',
+          keyPlaceholder: 'AIza...',
+          keySave: 'Save',
+          keyChange: 'Change',
+          keyRemove: 'Remove',
+          keySavedLabel: 'Key saved',
+          keyGetLink: 'Get a free key (Google AI Studio)',
           btnBackupExport: 'Download Backup',
           btnBackupImport: 'Restore Backup',
           autosaveNote: 'Your cards are saved automatically in this browser.',
@@ -463,6 +485,10 @@
           btnCopiedSummary: 'Copied to Clipboard ✓',
           perGuestShort: 'guest',
           toastReset: 'All cards cleared. Upload your new quotes anytime.',
+          toastKeyNeeded: 'Enter your Gemini API key first.',
+          toastKeySaved: 'Key saved.',
+          toastKeyRemoved: 'Key removed.',
+          toastKeyFormat: 'That key does not look valid. Paste the key from Google AI Studio.',
           toastImported: 'Backup restored. Quote screenshots are not part of backups.',
           toastImportFailed: 'This file is not a valid backup.',
           toastVenueAdded: 'venue quote(s) decoded and added to comparison.',
@@ -519,6 +545,10 @@
           cardScanningId: null,
           batchQueue: [],
           failedQueue: [],
+          geminiKey: '',
+          keyRequired: null,
+          keyDraft: '',
+          editingKey: false,
           showSummaryModal: false,
           copiedSummary: false,
           toastMessage: '',
@@ -536,6 +566,21 @@
             } catch {
               // localStorage unavailable (private mode / blocked)
             }
+
+            try {
+              this.geminiKey = localStorage.getItem('wqd:gemini-key') || '';
+            } catch {
+              // localStorage unavailable
+            }
+            fetch('/api/config')
+              .then((r) => r.json())
+              .then((c) => {
+                this.keyRequired = Boolean(c.keyRequired);
+                this.refreshIcons();
+              })
+              .catch(() => {
+                this.keyRequired = true;
+              });
 
             let saveTimer = null;
             this.$watch(
@@ -555,6 +600,49 @@
             this.$nextTick(() => {
               if (window.lucide) window.lucide.createIcons();
             });
+          },
+
+          needKey() {
+            return this.keyRequired !== false && !this.geminiKey;
+          },
+
+          maskedKey() {
+            const k = this.geminiKey;
+            return k.length > 8 ? `${k.slice(0, 4)}…${k.slice(-4)}` : '••••';
+          },
+
+          apiHeaders() {
+            const headers = { 'Content-Type': 'application/json' };
+            if (this.geminiKey) headers['x-gemini-key'] = this.geminiKey;
+            return headers;
+          },
+
+          saveKey() {
+            const key = (this.keyDraft || '').trim();
+            if (!/^[A-Za-z0-9_-]{20,128}$/.test(key)) {
+              this.showToast(this.t('toastKeyFormat'));
+              return;
+            }
+            this.geminiKey = key;
+            this.keyDraft = '';
+            this.editingKey = false;
+            try {
+              localStorage.setItem('wqd:gemini-key', key);
+            } catch {
+              // keep the key in memory for this session only
+            }
+            this.showToast(this.t('toastKeySaved'));
+          },
+
+          clearKey() {
+            this.geminiKey = '';
+            this.editingKey = false;
+            try {
+              localStorage.removeItem('wqd:gemini-key');
+            } catch {
+              // ignore
+            }
+            this.showToast(this.t('toastKeyRemoved'));
           },
 
           exportBackup() {
@@ -726,7 +814,7 @@
             try {
               const resp = await fetch('/api/find-venue-photo', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: this.apiHeaders(),
                 body: JSON.stringify({ name, region, force }),
               });
               const data = await resp.json();
@@ -1346,6 +1434,12 @@
 
           async processUploadedFiles(files, targetVenueId = null) {
             if (this.isScanning || this.cardScanningId) return;
+            if (this.needKey()) {
+              this.editingKey = true;
+              this.showToast(this.t('toastKeyNeeded'));
+              this.$nextTick(() => document.getElementById('api-key-box')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+              return;
+            }
 
             if (targetVenueId) {
               this.cardScanningId = targetVenueId;
@@ -1378,7 +1472,7 @@
 
                 const resp = await fetch('/api/decode-quote', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: this.apiHeaders(),
                   body: JSON.stringify({
                     fileName: file.name,
                     mimeType,
@@ -1387,6 +1481,9 @@
                 });
 
                 const payload = await resp.json();
+                if (payload.code === 'API_KEY_REQUIRED' || payload.code === 'API_KEY_INVALID') {
+                  this.editingKey = true;
+                }
                 if (!resp.ok || !payload.venue) {
                   throw new Error(payload.error || 'AI decode failed');
                 }
@@ -1729,6 +1826,45 @@
             class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-stone sm:text-base"
             x-text="t('heroSubtitle')"
           ></p>
+        </div>
+
+        <!-- Gemini API key (BYOK) -->
+        <div
+          id="api-key-box"
+          x-show="keyRequired !== false"
+          x-cloak
+          class="mx-auto mt-8 max-w-5xl rounded-2xl border border-champagne-line bg-white/85 p-5 backdrop-blur-xl sm:p-6"
+        >
+          <div x-show="geminiKey && !editingKey" class="flex flex-wrap items-center justify-between gap-3">
+            <p class="text-sm text-obsidian">
+              <span class="font-semibold" x-text="t('keySavedLabel')"></span>
+              <span class="ml-2 font-mono text-xs text-stone" x-text="maskedKey()"></span>
+            </p>
+            <div class="flex items-center gap-2">
+              <button type="button" @click="editingKey = true" class="rounded-full px-4 py-2 text-xs font-medium text-stone transition-colors hover:bg-champagne-soft hover:text-obsidian" x-text="t('keyChange')"></button>
+              <button type="button" @click="clearKey()" class="rounded-full px-4 py-2 text-xs font-medium text-stone transition-colors hover:bg-peony-bg hover:text-peony" x-text="t('keyRemove')"></button>
+            </div>
+          </div>
+
+          <form x-show="!geminiKey || editingKey" @submit.prevent="saveKey()" class="space-y-3">
+            <div>
+              <h2 class="text-sm font-semibold text-obsidian" x-text="t('keyTitle')"></h2>
+              <p class="mt-1 text-xs leading-relaxed text-stone" x-text="t('keyBody')"></p>
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input
+                type="password"
+                x-model="keyDraft"
+                autocomplete="off"
+                spellcheck="false"
+                :placeholder="t('keyPlaceholder')"
+                :aria-label="t('keyTitle')"
+                class="min-w-0 flex-1 rounded-xl border border-champagne-line bg-white px-4 py-2.5 font-mono text-sm text-obsidian focus:border-champagne focus:outline-none"
+              />
+              <button type="submit" class="rounded-full bg-obsidian px-5 py-2.5 text-sm font-semibold text-pearl transition-colors hover:bg-obsidian/90 whitespace-nowrap" x-text="t('keySave')"></button>
+            </div>
+            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="inline-block text-xs font-medium text-champagne underline underline-offset-2 hover:text-obsidian" x-text="t('keyGetLink')"></a>
+          </form>
         </div>
 
         <!-- Floating Glass Atelier Card Dropzone -->

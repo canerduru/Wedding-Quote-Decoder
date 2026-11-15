@@ -9,17 +9,14 @@ function readPassword(header) {
   return colon === -1 ? null : decoded.slice(colon + 1);
 }
 
-export function createBasicAuth({ password, isProduction, maxFailures = 10, windowMs = 60_000, now = Date.now }) {
+export function createBasicAuth({ password, maxFailures = 10, windowMs = 60_000, now = Date.now }) {
   const failures = new Map();
   const expected = password ? sha256(password) : null;
 
   return function basicAuth(req, res, next) {
     if (req.path === '/health') return next();
 
-    if (!expected) {
-      if (!isProduction) return next();
-      return res.status(503).send('APP_PASSWORD is not configured on the server.');
-    }
+    if (!expected) return next();
 
     const ip = req.ip || 'unknown';
     const entry = failures.get(ip);
