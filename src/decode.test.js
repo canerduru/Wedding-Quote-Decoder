@@ -139,3 +139,18 @@ test('kalem turu info secenegini ve fiyatsiz kalem kuralini icerir', async () =>
   assert.match(prompt, /type="info"/);
   assert.match(prompt, /amount 0/);
 });
+
+test('sema sure, tarih ve davetli notlarini ister', async () => {
+  const h = harness([ok()]);
+  await decodeQuote(h.args);
+  const schema = h.calls[0].body.generationConfig.responseSchema;
+  for (const key of ['durationNote', 'datesNote', 'guestsNote']) {
+    assert.ok(schema.properties[key], key);
+    assert.ok(schema.required.includes(key), key);
+    assert.ok(schema.properties[key].required.includes('tr'));
+  }
+  const prompt = h.calls[0].body.contents[0].parts[1].text;
+  assert.match(prompt, /durationNote/);
+  assert.match(prompt, /datesNote/);
+  assert.match(prompt, /guestsNote/);
+});

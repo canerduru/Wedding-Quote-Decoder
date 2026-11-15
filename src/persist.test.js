@@ -169,3 +169,17 @@ test('kalem turu info korunur, bilinmeyen tur risk olur', () => {
   raw.venues[0].flags[1].type = 'evil';
   assert.equal(parseState(JSON.stringify(raw)).venues[0].flags[1].type, 'risk');
 });
+
+test('sure, tarih ve davetli notlari yedekte korunur', () => {
+  const st = state();
+  Object.assign(st.venues[0], {
+    durationNote: { tr: '2 saat', en: '2 hours' },
+    datesNote: { tr: 'Nisan 2027', en: 'April 2027' },
+    guestsNote: { tr: '13 kişi', en: '13 guests' },
+  });
+  const v = parseState(serializeState(st)).venues[0];
+  assert.equal(v.durationNote.tr, '2 saat');
+  assert.equal(v.datesNote.en, 'April 2027');
+  assert.equal(v.guestsNote.tr, '13 kişi');
+  assert.deepEqual(parseState(serializeState(state())).venues[0].durationNote, { tr: '', en: '' });
+});
