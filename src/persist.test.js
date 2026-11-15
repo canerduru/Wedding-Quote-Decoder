@@ -192,3 +192,13 @@ test('teklifteki toplam yedekte korunur, bozuk deger 0 olur', () => {
   raw.venues[0].statedTotalEur = 'x';
   assert.equal(parseState(JSON.stringify(raw)).venues[0].statedTotalEur, 0);
 });
+
+test('ek onizlemeler ve birlestirme cakismalari kaydedilmez', () => {
+  const st = state();
+  st.venues[0].extraPreviews = ['data:image/png;base64,BBBB'];
+  st.venues[0].mergeConflicts = [{ key: 'baseFeeEur', kind: 'money', current: 1, incoming: 2 }];
+  const json = serializeState(st);
+  assert.ok(!json.includes('base64'));
+  assert.ok(!json.includes('mergeConflicts'));
+  assert.equal(parseState(json).venues[0].name, 'Villa A');
+});

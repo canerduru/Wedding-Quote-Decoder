@@ -158,6 +158,7 @@
       import * as completeness from '/src/completeness.js';
       import * as flagedit from '/src/flagedit.js';
       import * as view from '/src/viewmode.js';
+      import * as merge from '/src/merge.js';
 
       window.__CALC__ = calc;
       window.__PERSIST__ = persist;
@@ -171,6 +172,7 @@
       window.__COMPLETE__ = completeness;
       window.__FLAGEDIT__ = flagedit;
       window.__VIEW__ = view;
+      window.__MERGE__ = merge;
 
       window.Alpine = Alpine;
       Alpine.start();
@@ -243,6 +245,19 @@
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
           categoriesNotStated: 'Bu teklifte belirtilmeyenler (eklemek için dokunun):',
+          toastMergedInto: 'Belge şu karta eklendi:',
+          toastMergeConflicts: 'farklı değer bulundu; kartı kontrol edin.',
+          venueSimilarKicker: 'Benzer isimli mekan',
+          venueSimilarYes: 'Evet, birleştir',
+          venueSimilarNo: 'Hayır, ayrı kart aç',
+          venueUnnamedKicker: 'Mekan adı bulunamadı',
+          venueUnnamedQ: 'Bu belge hangi mekana ait?',
+          venueAddTo: 'Şuna ekle:',
+          venueOpenSeparate: 'Ayrı kart olarak aç',
+          conflictTitle: 'Birleştirmede farklı değerler bulundu. Hangisini kullanalım?',
+          conflictKeep: 'Mevcut:',
+          conflictUse: 'Yeni belge:',
+          nextPreview: 'Sonraki teklif görseli',
           densityLabel: 'Kart boyutu',
           densityLarge: 'Büyük',
           densityMedium: 'Orta',
@@ -453,6 +468,19 @@
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
           categoriesNotStated: 'Not stated in this quote (tap to add):',
+          toastMergedInto: 'Document added to card:',
+          toastMergeConflicts: 'different value(s) found; please check the card.',
+          venueSimilarKicker: 'Similar venue name',
+          venueSimilarYes: 'Yes, merge',
+          venueSimilarNo: 'No, open a separate card',
+          venueUnnamedKicker: 'Venue name not found',
+          venueUnnamedQ: 'Which venue does this document belong to?',
+          venueAddTo: 'Add to:',
+          venueOpenSeparate: 'Open as a separate card',
+          conflictTitle: 'Different values were found while merging. Which one should we use?',
+          conflictKeep: 'Current:',
+          conflictUse: 'New document:',
+          nextPreview: 'Next quote image',
           densityLabel: 'Card size',
           densityLarge: 'Large',
           densityMedium: 'Medium',
@@ -685,6 +713,7 @@
           canonicalCategories: CANONICAL_CATEGORY_ORDER,
           venues: [],
           pendingVendorAddons: [],
+          pendingVenueDocs: [],
           isDragging: false,
           dragOverVenueId: null,
           isScanning: false,
@@ -1333,60 +1362,105 @@
             this.refreshIcons();
           },
 
+          venueName(venueId) {
+            const venue = this.venues.find((v) => v.id === venueId);
+            return venue ? this.displayVenueName(venue) : '';
+          },
+
+          similarQuestion(doc) {
+            const mine = doc.venue.name;
+            const other = this.venueName(doc.candidateId);
+            return this.lang === 'tr'
+              ? `“${mine}” belgesi “${other}” ile aynı mekan mı?`
+              : `Is the “${mine}” document the same venue as “${other}”?`;
+          },
+
+          recordConflicts(venue, conflicts) {
+            if (!conflicts.length) return;
+            const known = (venue.mergeConflicts || []).filter((c) => !conflicts.some((n) => n.key === c.key));
+            venue.mergeConflicts = [...known, ...conflicts];
+          },
+
+          conflictLabelKey(key) {
+            return {
+              baseFeeEur: 'baseFeeLabel',
+              fbPerPersonEur: 'fbPerPersonLabel',
+              minimumSpendEur: 'termsMinSpend',
+              statedTotalEur: 'termsStatedTotal',
+              depositNote: 'termsDeposit',
+              cancellationNote: 'termsCancel',
+              durationNote: 'termsDuration',
+              datesNote: 'termsDates',
+              guestsNote: 'termsGuests',
+              validUntil: 'termsValid',
+            }[key] || key;
+          },
+
+          conflictValue(conflict, which) {
+            const value = conflict[which];
+            if (conflict.kind === 'money') return this.formatCurrency(value);
+            if (conflict.kind === 'date') return this.validityText(value) || value;
+            return value?.[this.lang] || value?.tr || value?.en || '';
+          },
+
+          resolveMergeConflict(venueId, key, choice) {
+            const venue = this.venues.find((v) => v.id === venueId);
+            const conflict = venue?.mergeConflicts?.find((c) => c.key === key);
+            if (!conflict) return;
+            window.__MERGE__.resolveConflict(venue, conflict, choice);
+            venue.mergeConflicts = venue.mergeConflicts.filter((c) => c.key !== key);
+          },
+
+          cyclePreview(venue) {
+            if (!venue.extraPreviews?.length) return;
+            venue.extraPreviews.push(venue.uploadedPreviewUrl);
+            venue.uploadedPreviewUrl = venue.extraPreviews.shift();
+            venue.coverMode = 'quote';
+          },
+
+          finishMerge(target, conflicts) {
+            this.recordConflicts(target, conflicts);
+            if (!target.realPhotoUrl && (target.name || '').trim().length >= 2) this.fetchVenuePhoto(target.id, false);
+            this.refreshIcons();
+          },
+
+          confirmPendingVenue(pendingId, targetId) {
+            const doc = this.pendingVenueDocs.find((d) => d.id === pendingId);
+            if (!doc) return;
+            const target = this.venues.find((v) => v.id === targetId);
+            if (!target) {
+              this.keepPendingSeparate(pendingId);
+              return;
+            }
+            this.finishMerge(target, window.__MERGE__.mergeVenue(target, doc.venue));
+            this.pendingVenueDocs = this.pendingVenueDocs.filter((d) => d.id !== pendingId);
+            this.showToast(`${this.t('toastMergedInto')} ${this.displayVenueName(target)}`);
+          },
+
+          keepPendingSeparate(pendingId) {
+            const doc = this.pendingVenueDocs.find((d) => d.id === pendingId);
+            if (!doc) return;
+            this.venues.push(doc.venue);
+            if (!doc.venue.nameUnknown && (doc.venue.name || '').trim().length >= 2) this.fetchVenuePhoto(doc.venue.id, false);
+            this.pendingVenueDocs = this.pendingVenueDocs.filter((d) => d.id !== pendingId);
+            this.refreshIcons();
+          },
+
+          dismissPendingVenue(pendingId) {
+            this.pendingVenueDocs = this.pendingVenueDocs.filter((d) => d.id !== pendingId);
+          },
+
           mergeVenueInto(sourceId, targetId) {
             if (!targetId || sourceId === targetId) return;
             const source = this.venues.find((v) => v.id === sourceId);
             const target = this.venues.find((v) => v.id === targetId);
             if (!source || !target) return;
 
-            if (!target.name.trim() && source.name.trim()) {
-              target.name = source.name;
-              target.nameUnknown = false;
-            }
-            if ((Number(target.baseFeeEur) || 0) === 0 && (Number(source.baseFeeEur) || 0) > 0) {
-              target.baseFeeEur = source.baseFeeEur;
-            }
-            if ((Number(target.fbPerPersonEur) || 0) === 0 && (Number(source.fbPerPersonEur) || 0) > 0) {
-              target.fbPerPersonEur = source.fbPerPersonEur;
-            }
-            if (!target.sourceCurrency) target.sourceCurrency = source.sourceCurrency || '';
-            if (!(Number(target.minimumSpendEur) > 0) && Number(source.minimumSpendEur) > 0) target.minimumSpendEur = source.minimumSpendEur;
-            ['depositNote', 'cancellationNote'].forEach((key) => {
-              if (!target[key]?.tr && !target[key]?.en && (source[key]?.tr || source[key]?.en)) target[key] = { ...source[key] };
-            });
-            if (!target.validUntil && source.validUntil) target.validUntil = source.validUntil;
-            if (!target.uploadedPreviewUrl && source.uploadedPreviewUrl) {
-              target.uploadedPreviewUrl = source.uploadedPreviewUrl;
-            }
-            if (!target.realPhotoUrl && source.realPhotoUrl) {
-              target.realPhotoUrl = source.realPhotoUrl;
-              target.realPhotoSourceUrl = source.realPhotoSourceUrl || '';
-              target.realPhotoSourceLabel = source.realPhotoSourceLabel || '';
-              target.realPhotoError = Boolean(source.realPhotoError);
-              target.photoStatus = source.photoStatus || 'found';
-              target.photoQueryKey = source.photoQueryKey || '';
-            }
-
-            target.sourceLabel = {
-              tr: `${target.sourceLabel.tr} + ${source.sourceLabel.tr}`,
-              en: `${target.sourceLabel.en} + ${source.sourceLabel.en}`,
-            };
-
-            const existingLabels = new Set(target.flags.map((f) => f.label.tr.toLowerCase()));
-            source.flags.forEach((f) => {
-              if (!existingLabels.has(f.label.tr.toLowerCase())) {
-                target.flags.push({ ...f, id: f.id + '-m' });
-                existingLabels.add(f.label.tr.toLowerCase());
-              }
-            });
-
+            const conflicts = window.__MERGE__.mergeVenue(target, source);
             target.editing = true;
             this.venues = this.venues.filter((v) => v.id !== sourceId);
-            if (!target.realPhotoUrl && (target.name || '').trim().length >= 2) {
-              this.fetchVenuePhoto(target.id, false);
-            }
-            this.refreshIcons();
-            this.showToast(this.t('toastMerged'));
+            this.finishMerge(target, conflicts);
+            this.showToast(conflicts.length ? `${conflicts.length} ${this.t('toastMergeConflicts')}` : this.t('toastMerged'));
           },
 
           addBlankManualVenue() {
@@ -1753,6 +1827,7 @@
             let venueAddedCount = 0;
             let vendorAutoAttachedCount = 0;
             let vendorQueuedCount = 0;
+            let venueQueuedCount = 0;
             let hasError = false;
             let lastAutoAttachMsg = '';
             let currencyWarned = false;
@@ -1857,11 +1932,23 @@
                       : [],
                   };
 
-                  this.venues.push(normalizedVenue);
-                  if (!isUnknown && parsedName.length >= 2) {
-                    this.fetchVenuePhoto(normalizedVenue.id, false);
+                  const match = isUnknown ? { kind: 'none' } : window.__MERGE__.findSameVenue(this.venues, parsedName);
+                  if (match.kind === 'exact') {
+                    this.finishMerge(match.venue, window.__MERGE__.mergeVenue(match.venue, normalizedVenue));
+                    lastAutoAttachMsg = `${this.t('toastMergedInto')} ${this.displayVenueName(match.venue)}`;
+                  } else if (match.kind === 'similar') {
+                    this.pendingVenueDocs.push({ id: uid, kind: 'similar', venue: normalizedVenue, candidateId: match.venue.id, fileName: file.name });
+                    venueQueuedCount += 1;
+                  } else if (isUnknown && this.venues.length > 0) {
+                    this.pendingVenueDocs.push({ id: uid, kind: 'unnamed', venue: normalizedVenue, fileName: file.name });
+                    venueQueuedCount += 1;
+                  } else {
+                    this.venues.push(normalizedVenue);
+                    if (!isUnknown && parsedName.length >= 2) {
+                      this.fetchVenuePhoto(normalizedVenue.id, false);
+                    }
+                    venueAddedCount += 1;
                   }
-                  venueAddedCount += 1;
                 }
 
                 if (!targetVenueId && this.batchQueue[i]) {
@@ -1900,6 +1987,9 @@
                 this.showToast(`${venueAddedCount} ${this.t('toastVenueAdded')}`);
                 const target = document.getElementById('comparison-section');
                 if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              } else if (venueQueuedCount > 0) {
+                const bar = document.getElementById('venue-decision-bar');
+                if (bar) bar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
               } else if (vendorQueuedCount > 0) {
                 const assignBar = document.getElementById('vendor-assignment-bar');
                 if (assignBar) assignBar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -2388,6 +2478,47 @@
             </div>
           </template>
         </div>
+
+        <!-- Same-venue decisions: similar names and unnamed documents -->
+        <div id="venue-decision-bar" x-show="pendingVenueDocs.length > 0" x-cloak class="mx-auto mt-6 max-w-5xl space-y-3">
+          <template x-for="doc in pendingVenueDocs" :key="doc.id">
+            <div class="rounded-[24px] border border-champagne-line bg-white/90 p-5 shadow-card backdrop-blur-lg sm:p-6">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <div class="text-xs font-semibold uppercase tracking-wider text-stone" x-text="doc.kind === 'similar' ? t('venueSimilarKicker') : t('venueUnnamedKicker')"></div>
+                  <p class="mt-2 font-serif text-xl font-medium text-obsidian sm:text-2xl" x-text="doc.kind === 'similar' ? similarQuestion(doc) : t('venueUnnamedQ')"></p>
+                  <p class="mt-1 text-xs text-stone" x-text="doc.fileName"></p>
+                </div>
+                <button
+                  type="button"
+                  @click="dismissPendingVenue(doc.id)"
+                  :title="t('vendorAssignDismiss')"
+                  :aria-label="t('vendorAssignDismiss')"
+                  class="rounded-full p-2 text-stone/70 transition-colors hover:bg-peony-bg hover:text-peony shrink-0"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div class="mt-4 flex flex-wrap items-center gap-2">
+                <template x-if="doc.kind === 'similar'">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" @click="confirmPendingVenue(doc.id, doc.candidateId)" class="rounded-full bg-obsidian px-4 py-2 text-xs font-semibold text-pearl transition-colors hover:bg-obsidian/90 whitespace-nowrap" x-text="t('venueSimilarYes')"></button>
+                    <button type="button" @click="keepPendingSeparate(doc.id)" class="rounded-full border border-champagne-line bg-pearl px-4 py-2 text-xs font-semibold text-obsidian transition-colors hover:border-champagne hover:bg-white whitespace-nowrap" x-text="t('venueSimilarNo')"></button>
+                  </div>
+                </template>
+                <template x-if="doc.kind === 'unnamed'">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <template x-for="v in venues" :key="'unnamed-' + doc.id + '-' + v.id">
+                      <button type="button" @click="confirmPendingVenue(doc.id, v.id)" class="rounded-full border border-champagne-line bg-pearl px-4 py-2 text-xs font-semibold text-obsidian transition-colors hover:border-champagne hover:bg-white whitespace-nowrap" x-text="`${t('venueAddTo')} ${displayVenueName(v)}`"></button>
+                    </template>
+                    <button type="button" @click="keepPendingSeparate(doc.id)" class="rounded-full px-3.5 py-2 text-xs font-medium text-stone underline-offset-4 hover:text-obsidian hover:underline whitespace-nowrap" x-text="t('venueOpenSeparate')"></button>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
       </section>
 
       <!-- 2. Sticky Floating Glass Equalizer Dock -->
@@ -2695,6 +2826,14 @@
 
                       <button
                         type="button"
+                        x-show="getActiveCoverKind(venue) === 'quote' && (venue.extraPreviews || []).length > 0"
+                        @click="cyclePreview(venue)"
+                        class="rounded-full border border-white/30 bg-obsidian/70 px-2.5 py-1 text-[11px] font-medium text-pearl backdrop-blur-md transition-colors hover:bg-obsidian"
+                        x-text="`${t('nextPreview')} (${(venue.extraPreviews || []).length + 1})`"
+                      ></button>
+
+                      <button
+                        type="button"
                         @click="removeVenue(venue.id)"
                         :title="t('removeVenueLabel')"
                         :aria-label="t('removeVenueLabel')"
@@ -2864,6 +3003,24 @@
                             class="mt-1 w-full rounded-xl border border-champagne-line bg-white px-3 py-1.5 text-sm text-obsidian focus:border-champagne focus:outline-none"
                           />
                         </label>
+                      </template>
+                    </div>
+
+                    <!-- Merge conflicts: two documents disagree -->
+                    <div x-show="(venue.mergeConflicts || []).length > 0" class="mt-4 space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-3">
+                      <p class="text-xs font-semibold text-amber-900" x-text="'⚠ ' + t('conflictTitle')"></p>
+                      <template x-for="c in venue.mergeConflicts || []" :key="c.key">
+                        <div class="rounded-lg bg-white/85 p-2 text-xs">
+                          <div class="font-semibold text-obsidian" x-text="t(conflictLabelKey(c.key))"></div>
+                          <div class="mt-1.5 flex flex-wrap gap-1.5">
+                            <button type="button" @click="resolveMergeConflict(venue.id, c.key, 'current')" class="rounded-full border border-champagne-line bg-pearl px-3 py-1 text-[11px] font-medium text-obsidian hover:border-champagne">
+                              <span class="text-stone" x-text="t('conflictKeep')"></span> <strong x-text="conflictValue(c, 'current')"></strong>
+                            </button>
+                            <button type="button" @click="resolveMergeConflict(venue.id, c.key, 'incoming')" class="rounded-full border border-champagne-line bg-pearl px-3 py-1 text-[11px] font-medium text-obsidian hover:border-champagne">
+                              <span class="text-stone" x-text="t('conflictUse')"></span> <strong x-text="conflictValue(c, 'incoming')"></strong>
+                            </button>
+                          </div>
+                        </div>
                       </template>
                     </div>
 
