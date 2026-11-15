@@ -1,7 +1,12 @@
-const KEY_FORMAT = /^[A-Za-z0-9_-]{20,128}$/;
+const KEY_FORMAT = /^[A-Za-z0-9._~+/=-]{20,256}$/;
+const SURROUNDING_QUOTES = /^["'“”‘’]+|["'“”‘’]+$/g;
+
+export function normalizeKey(key) {
+  return typeof key === 'string' ? key.trim().replace(SURROUNDING_QUOTES, '').trim() : '';
+}
 
 export function isValidKeyFormat(key) {
-  return typeof key === 'string' && KEY_FORMAT.test(key.trim());
+  return KEY_FORMAT.test(normalizeKey(key));
 }
 
 export function classifyGeminiError(message) {
