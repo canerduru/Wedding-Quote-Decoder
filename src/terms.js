@@ -39,3 +39,17 @@ export function validityStatus(validUntil, today = new Date()) {
   const days = Math.round((Date.parse(`${valid}T00:00:00Z`) - todayUtc) / 86400000);
   return { state: days < 0 ? 'expired' : 'valid', days };
 }
+
+const VALIDITY_WORDS = {
+  tr: { expired: 'süresi dolmuş', today: 'bugün son gün', left: 'gün kaldı', locale: 'tr-TR' },
+  en: { expired: 'expired', today: 'last day today', left: 'days left', locale: 'en-GB' },
+};
+
+export function formatValidity(validUntil, lang = 'tr', today = new Date()) {
+  const status = validityStatus(validUntil, today);
+  if (status.state === 'none') return '';
+  const words = VALIDITY_WORDS[lang] || VALIDITY_WORDS.tr;
+  const date = new Date(`${validUntil}T00:00:00`).toLocaleDateString(words.locale, { day: 'numeric', month: 'short', year: 'numeric' });
+  if (status.state === 'expired') return `${date} · ${words.expired}`;
+  return status.days === 0 ? `${date} · ${words.today}` : `${date} · ${status.days} ${words.left}`;
+}
