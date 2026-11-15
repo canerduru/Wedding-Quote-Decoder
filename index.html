@@ -243,6 +243,10 @@
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
           categoriesNotStated: 'Bu teklifte belirtilmeyenler (eklemek için dokunun):',
+          densityLabel: 'Kart boyutu',
+          densityLarge: 'Büyük',
+          densityMedium: 'Orta',
+          densitySmall: 'Küçük',
           tableGroupPrice: 'Fiyat',
           tableGroupTerms: 'Teklif koşulları',
           tableGroupExtras: 'Ek kalemler',
@@ -449,6 +453,10 @@
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
           categoriesNotStated: 'Not stated in this quote (tap to add):',
+          densityLabel: 'Card size',
+          densityLarge: 'Large',
+          densityMedium: 'Medium',
+          densitySmall: 'Small',
           tableGroupPrice: 'Price',
           tableGroupTerms: 'Quote terms',
           tableGroupExtras: 'Extras',
@@ -687,6 +695,7 @@
           keyDraft: '',
           editingKey: false,
           viewMode: 'table',
+          density: 'large',
           topNotes: [
             { key: 'datesNote', label: 'termsDates', edit: 'datesEditLabel' },
             { key: 'durationNote', label: 'termsDuration', edit: 'durationEditLabel' },
@@ -720,6 +729,7 @@
               // localStorage unavailable
             }
             this.viewMode = window.__VIEW__.loadViewMode(window.localStorage);
+            this.density = window.__VIEW__.loadDensity(window.localStorage);
 
             let saveTimer = null;
             this.$watch(
@@ -810,6 +820,15 @@
           setViewMode(mode) {
             this.viewMode = mode;
             window.__VIEW__.saveViewMode(window.localStorage, mode);
+          },
+
+          setDensity(density) {
+            this.density = density;
+            window.__VIEW__.saveDensity(window.localStorage, density);
+          },
+
+          gridStyle() {
+            return window.__VIEW__.gridStyle(this.venues.length, this.density);
           },
 
           openCard(venueId) {
@@ -2570,6 +2589,24 @@
                   x-text="t('viewTable')"
                 ></button>
               </div>
+              <div
+                x-show="venues.length >= 2 && viewMode === 'cards'"
+                class="inline-flex items-center rounded-full border border-champagne-line bg-white/80 p-1"
+                role="group"
+                :aria-label="t('densityLabel')"
+              >
+                <template x-for="option in [['large', 'densityLarge'], ['medium', 'densityMedium'], ['small', 'densitySmall']]" :key="option[0]">
+                  <button
+                    type="button"
+                    @click="setDensity(option[0])"
+                    :aria-pressed="density === option[0]"
+                    :title="t('densityLabel')"
+                    :class="density === option[0] ? 'bg-obsidian text-pearl shadow-sm' : 'text-stone hover:text-obsidian'"
+                    class="rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 whitespace-nowrap"
+                    x-text="t(option[1])"
+                  ></button>
+                </template>
+              </div>
               <p class="text-xs text-stone" x-text="t('comparisonHint')"></p>
               <button
                 type="button"
@@ -2584,7 +2621,8 @@
           <div
             x-show="!showTable()"
             class="mt-8 grid grid-cols-1 gap-7 items-start"
-            :class="venues.length >= 3 ? 'md:grid-cols-2 lg:grid-cols-3' : (venues.length === 2 ? 'lg:grid-cols-2' : 'max-w-2xl')"
+            :class="venues.length < 2 ? 'max-w-2xl' : ''"
+            :style="gridStyle()"
           >
             <template x-for="venue in venues" :key="venue.id">
               <article
