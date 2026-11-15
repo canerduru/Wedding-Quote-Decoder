@@ -183,3 +183,12 @@ test('sure, tarih ve davetli notlari yedekte korunur', () => {
   assert.equal(v.guestsNote.tr, '13 kişi');
   assert.deepEqual(parseState(serializeState(state())).venues[0].durationNote, { tr: '', en: '' });
 });
+
+test('teklifteki toplam yedekte korunur, bozuk deger 0 olur', () => {
+  const st = state();
+  st.venues[0].statedTotalEur = 5500;
+  assert.equal(parseState(serializeState(st)).venues[0].statedTotalEur, 5500);
+  const raw = JSON.parse(serializeState(st));
+  raw.venues[0].statedTotalEur = 'x';
+  assert.equal(parseState(JSON.stringify(raw)).venues[0].statedTotalEur, 0);
+});

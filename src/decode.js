@@ -102,6 +102,11 @@ const RESPONSE_SCHEMA = {
       },
       required: ['tr', 'en'],
     },
+    statedTotal: {
+      type: 'NUMBER',
+      description:
+        "The grand total the document itself states (e.g. 'Total: 5,500'), in the document's ORIGINAL currency (no conversion). 0 if the document does not state a total. NEVER compute or invent one.",
+    },
     durationNote: {
       type: 'OBJECT',
       description: "How long the rental / event time is and its hours (e.g. '2 hours, 4-6 PM, extra hour 500 EUR', '1 hour minimum')",
@@ -203,6 +208,7 @@ const RESPONSE_SCHEMA = {
     'depositNote',
     'cancellationNote',
     'validUntil',
+    'statedTotal',
     'durationNote',
     'datesNote',
     'guestsNote',
@@ -237,6 +243,9 @@ Rules:
    - validUntil: the date the quote stays valid as YYYY-MM-DD, or '' if not stated.
    - durationNote: how long the venue/service is booked and the time window (venue prices are not comparable without it); datesNote: requested or offered date(s); guestsNote: the guest count the quote assumes and any minimum guarantee. At most 15 words each; empty strings if the document says nothing.
    - Small recurring charges (overtime, corkage, cake cutting, cleaning, extra hours) are hidden costs: put each as its own flag.
+   - statedTotal: the grand total the document itself states, in the ORIGINAL currency; 0 if it states none. Never compute it yourself.
+   - Fees that the document lists as separate lines (e.g. ceremony fee, cleaning, service) must stay as separately listed fees: put the main venue / accommodation rental in baseFee and every other fixed fee as its own flag (type="risk", active=true, with its exact amount). Do NOT merge them into baseFee.
+   - Do not put wording such as "price not stated" in a flag label; the application shows that itself. Keep labels short and neutral.
    - NEVER invent terms. Missing information must stay 0 or empty so the app can show it as not stated.
 6. Flag types:
    - type="risk": any extra or excluded cost. If the document says something is NOT included, mandatory or extra but gives NO price (e.g. "music not included", "flowers extra", "room reservation required"), still return it as type="risk" with amount 0 and active=false so the application can ask the user for a price. NEVER invent an amount.

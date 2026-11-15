@@ -17,6 +17,7 @@ export function convertDecoded(raw, rates) {
     baseFeeEur: toEur(raw.baseFee, currency, rates),
     fbPerPersonEur: toEur(raw.fbPerPerson, currency, rates),
     minimumSpendEur: toEur(raw.minimumSpend, currency, rates),
+    statedTotalEur: toEur(raw.statedTotal, currency, rates),
     flags: (raw.flags || []).map((flag) => ({
       ...flag,
       amount: isFlat(flag) ? toEur(flag.amount, currency, rates) : flag.amount,
@@ -34,6 +35,7 @@ export function rescaleSource(venue, currency, oldRate, newRate) {
     venue.baseFeeEur = (Number(venue.baseFeeEur) || 0) * factor;
     venue.fbPerPersonEur = (Number(venue.fbPerPersonEur) || 0) * factor;
     venue.minimumSpendEur = (Number(venue.minimumSpendEur) || 0) * factor;
+    venue.statedTotalEur = (Number(venue.statedTotalEur) || 0) * factor;
   }
   for (const flag of venue.flags || []) {
     if (flag.sourceCurrency !== currency) continue;

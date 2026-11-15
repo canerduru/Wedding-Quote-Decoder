@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { needsPrice, completeness } from './completeness.js';
+import { needsPrice, completeness, statedTotalCheck, stripPriceNote } from './completeness.js';
 
 const risk = (calcType, amount, extra = {}) => ({ type: 'risk', active: false, calcType, amount, ...extra });
 
@@ -29,4 +29,29 @@ test('completeness: dis catering teklifi eklenmisse yemek eksik sayilmaz', () =>
   assert.equal(completeness(v).foodMissing, false);
   const pasif = { ...v, flags: [risk('per_guest', 80, { active: false, vendorCategory: 'catering' })] };
   assert.equal(completeness(pasif).foodMissing, true);
+});
+
+test('statedTotalCheck: teklifteki toplam yoksa none, yakinsa ok, uzaksa mismatch', () => {
+  const base = { baseFeeEur: 5100, fbPerPersonEur: 0, flags: [{ type: 'risk', active: true, calcType: 'fixed', amount: 400 }] };
+  assert.deepEqual(statedTotalCheck(base, 100), { kind: 'none', statedEur: 0, computedEur: 5500 });
+  assert.equal(statedTotalCheck({ ...base, statedTotalEur: 5500 }, 100).kind, 'ok');
+  const near = statedTotalCheck({ ...base, statedTotalEur: 5450 }, 100);
+  assert.equal(near.kind, 'ok');
+  const far = statedTotalCheck({ ...base, statedTotalEur: 4000 }, 100);
+  assert.equal(far.kind, 'mismatch');
+  assert.equal(far.statedEur, 4000);
+  assert.equal(far.computedEur, 5500);
+});
+
+test('statedTotalCheck: hesaplanan toplam 0 ise karsilastirma yapilmaz', () => {
+  assert.equal(statedTotalCheck({ baseFeeEur: 0, fbPerPersonEur: 0, flags: [], statedTotalEur: 5500 }, 100).kind, 'none');
+});
+
+test('stripPriceNote: sondaki fiyat belirtilmedi parantezini temizler', () => {
+  assert.equal(stripPriceNote('Tekne Kiralama (Fiyat Belirtilmedi)'), 'Tekne Kiralama');
+  assert.equal(stripPriceNote('Hazırlık İçin Oda (Fiyat Belirtilmemiş)'), 'Hazırlık İçin Oda');
+  assert.equal(stripPriceNote('Boat rental (Price not stated)'), 'Boat rental');
+  assert.equal(stripPriceNote('Boat (Price Not Specified) '), 'Boat');
+  assert.equal(stripPriceNote('Ekstra Saat Ücreti (€500 / saat)'), 'Ekstra Saat Ücreti (€500 / saat)');
+  assert.equal(stripPriceNote(undefined), '');
 });

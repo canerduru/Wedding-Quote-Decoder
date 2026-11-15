@@ -25,6 +25,7 @@ test('convertDecoded: sabit ve kisi basi tutarlar cevrilir, yuzdeler dokunulmaz,
     baseFee: 556667,
     fbPerPerson: 5566.67,
     minimumSpend: 2783335,
+    statedTotal: 5566670,
     flags: [
       { calcType: 'fixed', amount: 55666.7, type: 'risk' },
       { calcType: 'per_guest', amount: 556.667, type: 'risk' },
@@ -36,6 +37,7 @@ test('convertDecoded: sabit ve kisi basi tutarlar cevrilir, yuzdeler dokunulmaz,
   near(out.baseFeeEur, 10000, 0.01);
   near(out.fbPerPersonEur, 100, 0.001);
   near(out.minimumSpendEur, 50000, 0.01);
+  near(out.statedTotalEur, 100000, 0.01);
   near(out.flags[0].amount, 1000, 0.001);
   near(out.flags[1].amount, 10, 0.0001);
   assert.equal(out.flags[2].amount, 20);
@@ -60,6 +62,7 @@ test('rescaleSource: TL rakamlari sabit kalir, EUR karsiligi yeni kura gore degi
     baseFeeEur: 10000,
     fbPerPersonEur: 100,
     minimumSpendEur: 50000,
+    statedTotalEur: 100000,
     flags: [
       { calcType: 'fixed', amount: 1000, sourceCurrency: 'TRY' },
       { calcType: 'fixed', amount: 500, sourceCurrency: 'EUR' },
@@ -72,6 +75,7 @@ test('rescaleSource: TL rakamlari sabit kalir, EUR karsiligi yeni kura gore degi
   near(venue.baseFeeEur * 60, 10000 * 55.6667, 0.01);
   near(venue.fbPerPersonEur * 60, 100 * 55.6667, 0.001);
   near(venue.minimumSpendEur * 60, 50000 * 55.6667, 0.01);
+  near(venue.statedTotalEur * 60, 100000 * 55.6667, 0.01);
   near(venue.flags[0].amount * 60, 1000 * 55.6667, 0.001);
   assert.equal(venue.flags[1].amount, 500);
   assert.equal(venue.flags[2].amount, 20);

@@ -12,6 +12,7 @@ test('emptyTerms: bos varsayilanlar', () => {
     durationNote: { tr: '', en: '' },
     datesNote: { tr: '', en: '' },
     guestsNote: { tr: '', en: '' },
+    statedTotalEur: 0,
     validUntil: '',
   });
   assert.notEqual(emptyTerms().depositNote, emptyTerms().depositNote);
@@ -62,4 +63,10 @@ test('termsFromDecoded: sure, tarih ve davetli notlarini alir, bozuklari bosalti
   assert.deepEqual(bad.durationNote, { tr: '', en: '' });
   assert.deepEqual(bad.datesNote, { tr: '', en: '' });
   assert.deepEqual(bad.guestsNote, { tr: '', en: '' });
+});
+
+test('termsFromDecoded: teklifteki toplam pozitif sayi ise alinir', () => {
+  assert.equal(termsFromDecoded({ statedTotalEur: 5500 }).statedTotalEur, 5500);
+  assert.equal(termsFromDecoded({ statedTotalEur: -1 }).statedTotalEur, 0);
+  assert.equal(termsFromDecoded({ statedTotalEur: 'x' }).statedTotalEur, 0);
 });
