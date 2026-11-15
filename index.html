@@ -25,7 +25,7 @@
     />
 
     <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -145,6 +145,21 @@
       import bosphorusPalace from '/src/assets/images/venue_bosphorus_palace_1794746162314.jpg';
       import tuscanEstate from '/src/assets/images/venue_tuscan_estate_1794746162354.jpg';
       import modernAtelier from '/src/assets/images/venue_modern_atelier_1794746162634.jpg';
+      import Alpine from 'alpinejs';
+      import * as calc from '/src/calc.js';
+      import * as persist from '/src/persist.js';
+      import * as decode from '/src/decode.js';
+      import * as photo from '/src/photo.js';
+      import * as apikey from '/src/apikey.js';
+
+      window.__CALC__ = calc;
+      window.__PERSIST__ = persist;
+      window.__DECODE__ = decode;
+      window.__PHOTO__ = photo;
+      window.__APIKEY__ = apikey;
+
+      window.Alpine = Alpine;
+      Alpine.start();
 
       window.__VENUE_COVERS__ = {
         lakeVilla,
@@ -209,10 +224,22 @@
           dropzoneCopy:
             'WhatsApp Ekran Görüntülerini (JPEG/PNG) veya Mekan PDF’lerini Buraya Bırakın. Excel eziyeti bitsin, yapay zeka saniyeler içinde karşılaştırsın.',
           dropzoneFormats:
-            'Çoklu dosya seçimi desteklenir · PNG, JPEG, WEBP, PDF · Maks. 20 MB',
+            'Çoklu dosya seçimi desteklenir · PNG, JPEG, WEBP, PDF · Maks. 14 MB',
           btnChooseFile: 'Çoklu Dosya Seç veya Sürükle',
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
+          keyTitle: 'Gemini API anahtarınızı girin',
+          keyBody:
+            'Teklifleri okumak için kendi Gemini anahtarınız kullanılır. Anahtar yalnızca bu tarayıcıda saklanır ve belgeleri okurken doğrudan Google’a gönderilir; başka hiçbir sunucuya uğramaz.',
+          keyPlaceholder: 'AIza...',
+          keySave: 'Kaydet',
+          keyChange: 'Değiştir',
+          keyRemove: 'Sil',
+          keySavedLabel: 'Anahtar kayıtlı',
+          keyGetLink: 'Ücretsiz anahtar al (Google AI Studio)',
+          btnBackupExport: 'Yedeği İndir',
+          btnBackupImport: 'Yedeği Yükle',
+          autosaveNote: 'Kartlarınız bu tarayıcıda otomatik kaydedilir.',
           ocrTitle: 'Yüklenen Belgeler İnceleniyor',
           ocrStatusPending: 'Sırada',
           ocrStatusScanning: 'Okunuyor...',
@@ -293,6 +320,7 @@
           newFlagLabelPlaceholder: 'Kalem adı (Örn: KDV +%20, DJ, Servis)',
           newFlagTypeFixed: 'Sabit (€)',
           newFlagTypePerGuest: 'Kişi Başı (€)',
+          newFlagTypeService: 'Servis Bedeli (%)',
           newFlagTypeVat: 'Oran / KDV (%)',
           newFlagAmountPlaceholder: 'Tutar veya %',
           btnSaveNewFlag: 'Kalemi Ekle',
@@ -317,6 +345,12 @@
           btnCopiedSummary: 'Panoya Kopyalandı ✓',
           perGuestShort: 'kişi',
           toastReset: 'Tüm kartlar temizlendi. Yeni tekliflerinizi yükleyebilirsiniz.',
+          toastKeyNeeded: 'Önce Gemini API anahtarınızı girin.',
+          toastKeySaved: 'Anahtar kaydedildi.',
+          toastKeyRemoved: 'Anahtar silindi.',
+          toastKeyFormat: 'Anahtar geçerli görünmüyor. Google AI Studio’dan aldığınız anahtarı yapıştırın.',
+          toastImported: 'Yedek yüklendi. Teklif görselleri yedeğe dahil değildir.',
+          toastImportFailed: 'Bu dosya geçerli bir yedek değil.',
           toastVenueAdded: 'mekan teklifi okundu ve karşılaştırmaya eklendi.',
           toastVendorAutoMatched: 'teklifi otomatik olarak şu karta eklendi:',
           toastVendorAssigned: 'ek hizmet teklifi seçili mekana eklendi.',
@@ -340,10 +374,22 @@
           dropzoneCopy:
             'Drop WhatsApp Screenshots (JPEG/PNG) or Venue PDFs Here. End spreadsheet fatigue—decode hidden costs in seconds.',
           dropzoneFormats:
-            'Multi-file selection supported · PNG, JPEG, WEBP, PDF · Max 20 MB',
+            'Multi-file selection supported · PNG, JPEG, WEBP, PDF · Max 14 MB',
           btnChooseFile: 'Select or Drop Multiple Files',
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
+          keyTitle: 'Enter your Gemini API key',
+          keyBody:
+            'Quotes are read with your own Gemini key. It stays in this browser only and is sent straight to Google when reading a document; it never passes through any other server.',
+          keyPlaceholder: 'AIza...',
+          keySave: 'Save',
+          keyChange: 'Change',
+          keyRemove: 'Remove',
+          keySavedLabel: 'Key saved',
+          keyGetLink: 'Get a free key (Google AI Studio)',
+          btnBackupExport: 'Download Backup',
+          btnBackupImport: 'Restore Backup',
+          autosaveNote: 'Your cards are saved automatically in this browser.',
           ocrTitle: 'Decoding Uploaded Quotes',
           ocrStatusPending: 'Queued',
           ocrStatusScanning: 'Reading...',
@@ -424,6 +470,7 @@
           newFlagLabelPlaceholder: 'Item name (e.g. VAT +20%, Service, DJ)',
           newFlagTypeFixed: 'Fixed (€)',
           newFlagTypePerGuest: 'Per Guest (€)',
+          newFlagTypeService: 'Service Charge (%)',
           newFlagTypeVat: 'Percentage / VAT (%)',
           newFlagAmountPlaceholder: 'Amount or %',
           btnSaveNewFlag: 'Add Item',
@@ -448,6 +495,12 @@
           btnCopiedSummary: 'Copied to Clipboard ✓',
           perGuestShort: 'guest',
           toastReset: 'All cards cleared. Upload your new quotes anytime.',
+          toastKeyNeeded: 'Enter your Gemini API key first.',
+          toastKeySaved: 'Key saved.',
+          toastKeyRemoved: 'Key removed.',
+          toastKeyFormat: 'That key does not look valid. Paste the key from Google AI Studio.',
+          toastImported: 'Backup restored. Quote screenshots are not part of backups.',
+          toastImportFailed: 'This file is not a valid backup.',
           toastVenueAdded: 'venue quote(s) decoded and added to comparison.',
           toastVendorAutoMatched: 'quote automatically attached to:',
           toastVendorAssigned: 'vendor quote added to selected venue.',
@@ -469,6 +522,8 @@
           .replace(/[^a-z0-9]+/g, ' ')
           .trim();
       }
+
+      const MAX_FILE_BYTES = 14 * 1024 * 1024;
 
       function readFileAsBase64(file) {
         return new Promise((resolve, reject) => {
@@ -502,15 +557,113 @@
           cardScanningId: null,
           batchQueue: [],
           failedQueue: [],
+          geminiKey: '',
+          keyDraft: '',
+          editingKey: false,
           showSummaryModal: false,
           copiedSummary: false,
           toastMessage: '',
           toastVisible: false,
 
           init() {
+            const P = window.__PERSIST__;
+            try {
+              const saved = P.parseState(localStorage.getItem(P.STORAGE_KEY));
+              if (saved) {
+                Object.assign(this, saved);
+                document.documentElement.lang = this.lang;
+                document.title = this.t('pageTitle');
+              }
+            } catch {
+              // localStorage unavailable (private mode / blocked)
+            }
+
+            try {
+              this.geminiKey = localStorage.getItem('wqd:gemini-key') || '';
+            } catch {
+              // localStorage unavailable
+            }
+            let saveTimer = null;
+            this.$watch(
+              () => P.serializeState(this),
+              (json) => {
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(() => {
+                  try {
+                    localStorage.setItem(P.STORAGE_KEY, json);
+                  } catch {
+                    // quota exceeded or storage blocked: keep working in memory
+                  }
+                }, 300);
+              }
+            );
+
             this.$nextTick(() => {
               if (window.lucide) window.lucide.createIcons();
             });
+          },
+
+          needKey() {
+            return !this.geminiKey;
+          },
+
+          maskedKey() {
+            const k = this.geminiKey;
+            return k.length > 8 ? `${k.slice(0, 4)}…${k.slice(-4)}` : '••••';
+          },
+
+          saveKey() {
+            const key = (this.keyDraft || '').trim();
+            if (!window.__APIKEY__.isValidKeyFormat(key)) {
+              this.showToast(this.t('toastKeyFormat'));
+              return;
+            }
+            this.geminiKey = key;
+            this.keyDraft = '';
+            this.editingKey = false;
+            try {
+              localStorage.setItem('wqd:gemini-key', key);
+            } catch {
+              // keep the key in memory for this session only
+            }
+            this.showToast(this.t('toastKeySaved'));
+          },
+
+          clearKey() {
+            this.geminiKey = '';
+            this.editingKey = false;
+            try {
+              localStorage.removeItem('wqd:gemini-key');
+            } catch {
+              // ignore
+            }
+            this.showToast(this.t('toastKeyRemoved'));
+          },
+
+          exportBackup() {
+            const json = window.__PERSIST__.serializeState(this);
+            const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `wedding-quotes-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+          },
+
+          async importBackup(event) {
+            const file = event.target?.files?.[0];
+            event.target.value = '';
+            if (!file) return;
+            const restored = window.__PERSIST__.parseState(await file.text());
+            if (!restored) {
+              this.showToast(this.t('toastImportFailed'));
+              return;
+            }
+            Object.assign(this, restored);
+            document.documentElement.lang = this.lang;
+            document.title = this.t('pageTitle');
+            this.refreshIcons();
+            this.showToast(this.t('toastImported'));
           },
 
           t(key) {
@@ -654,18 +807,13 @@
             venue.realPhotoError = false;
 
             try {
-              const resp = await fetch('/api/find-venue-photo', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, region, force }),
-              });
-              const data = await resp.json();
+              const data = await window.__PHOTO__.findVenuePhoto({ name, region });
 
               const currentVenue = this.venues.find((v) => v.id === venueId);
               if (!currentVenue || currentVenue.photoQueryKey !== queryKey) return;
 
-              if (resp.ok && data?.found && data?.proxyUrl) {
-                currentVenue.realPhotoUrl = data.proxyUrl;
+              if (data.found) {
+                currentVenue.realPhotoUrl = data.imageUrl;
                 currentVenue.realPhotoSourceUrl = data.sourceUrl || '';
                 currentVenue.realPhotoSourceLabel = data.sourceLabel || '';
                 currentVenue.realPhotoError = false;
@@ -736,69 +884,11 @@
           },
 
           getFlagAmountEur(venue, flag) {
-            if (flag.type !== 'risk') return 0;
-            if (flag.calcType === 'fixed') return Number(flag.amount) || 0;
-            if (flag.calcType === 'per_guest') return (Number(flag.amount) || 0) * this.guestCount;
-            if (flag.calcType === 'vendor_vat_pct') {
-              const vBase = (Number(flag.vendorBaseEur) || 0) + (Number(flag.vendorPerGuestEur) || 0) * this.guestCount;
-              return (vBase * (Number(flag.amount) || 0)) / 100;
-            }
-            if (flag.calcType === 'vat_pct') {
-              const base = Number(venue.baseFeeEur) || 0;
-              const fbSubtotal = (Number(venue.fbPerPersonEur) || 0) * this.guestCount;
-              const fixedAndGuest = venue.flags
-                .filter((f) => f.type === 'risk' && f.active && f.calcType !== 'vat_pct' && f.calcType !== 'vendor_vat_pct')
-                .reduce(
-                  (sum, f) =>
-                    sum + (f.calcType === 'per_guest' ? (Number(f.amount) || 0) * this.guestCount : Number(f.amount) || 0),
-                  0
-                );
-              return ((base + fbSubtotal + fixedAndGuest) * (Number(flag.amount) || 0)) / 100;
-            }
-            return 0;
+            return window.__CALC__.getFlagAmountEur(venue, flag, this.guestCount);
           },
 
           calculateBreakdown(venue) {
-            const baseFeeEur = Number(venue.baseFeeEur) || 0;
-            const fbPerPersonEur = Number(venue.fbPerPersonEur) || 0;
-            const fbSubtotalEur = fbPerPersonEur * this.guestCount;
-            let fixedAndGuestExtrasEur = 0;
-            let vendorVatExtrasEur = 0;
-            let vatAmountEur = 0;
-
-            venue.flags.forEach((flag) => {
-              if (flag.type === 'risk' && flag.active) {
-                if (flag.calcType === 'fixed') {
-                  fixedAndGuestExtrasEur += Number(flag.amount) || 0;
-                } else if (flag.calcType === 'per_guest') {
-                  fixedAndGuestExtrasEur += (Number(flag.amount) || 0) * this.guestCount;
-                } else if (flag.calcType === 'vendor_vat_pct') {
-                  const vBase = (Number(flag.vendorBaseEur) || 0) + (Number(flag.vendorPerGuestEur) || 0) * this.guestCount;
-                  vendorVatExtrasEur += (vBase * (Number(flag.amount) || 0)) / 100;
-                }
-              }
-            });
-
-            const taxableBaseEur = baseFeeEur + fbSubtotalEur + fixedAndGuestExtrasEur;
-
-            venue.flags.forEach((flag) => {
-              if (flag.type === 'risk' && flag.active && flag.calcType === 'vat_pct') {
-                vatAmountEur += (taxableBaseEur * (Number(flag.amount) || 0)) / 100;
-              }
-            });
-
-            const hiddenExtrasTotalEur = fixedAndGuestExtrasEur + vendorVatExtrasEur + vatAmountEur;
-            const turnkeyTotalEur = baseFeeEur + fbSubtotalEur + hiddenExtrasTotalEur;
-            const effectivePerGuestEur = turnkeyTotalEur / Math.max(1, this.guestCount);
-
-            return {
-              fbSubtotalEur,
-              fixedAndGuestExtrasEur,
-              vatAmountEur,
-              hiddenExtrasTotalEur,
-              turnkeyTotalEur,
-              effectivePerGuestEur,
-            };
+            return window.__CALC__.calculateBreakdown(venue, this.guestCount);
           },
 
           getBudgetDistribution(venue) {
@@ -824,18 +914,15 @@
           },
 
           getLowestTotalEur() {
-            if (!this.venues.length) return 0;
-            return Math.min(...this.venues.map((v) => this.calculateBreakdown(v).turnkeyTotalEur));
+            return window.__CALC__.getLowestTotalEur(this.venues, this.guestCount);
           },
 
           getDeltaFromLowest(venue) {
-            const total = this.calculateBreakdown(venue).turnkeyTotalEur;
-            return total - this.getLowestTotalEur();
+            return window.__CALC__.getDeltaFromLowest(venue, this.venues, this.guestCount);
           },
 
           isBestValue(venue) {
-            if (this.venues.length < 2) return false;
-            return Math.round(this.getDeltaFromLowest(venue)) === 0;
+            return window.__CALC__.isBestValue(venue, this.venues, this.guestCount);
           },
 
           resolveFlagCategory(flag) {
@@ -922,7 +1009,7 @@
                   });
 
             const suffix =
-              calcType === 'vat_pct'
+              calcType === 'vat_pct' || calcType === 'service_pct'
                 ? `(+%${amt})`
                 : calcType === 'per_guest'
                   ? `(+€${amt} / ${this.lang === 'tr' ? 'kişi' : 'guest'})`
@@ -1070,7 +1157,8 @@
             const vendorName = (v.name || '').trim();
             const rawFlags = Array.isArray(v.flags) ? v.flags : [];
 
-            const serviceItems = rawFlags.filter((f) => f.type !== 'safe' && f.calcType !== 'vat_pct');
+            const isPctItem = (f) => f.calcType === 'vat_pct' || f.calcType === 'service_pct';
+            const serviceItems = rawFlags.filter((f) => f.type !== 'safe' && !isPctItem(f));
             if (serviceItems.length === 0 && ((Number(v.baseFeeEur) || 0) > 0 || (Number(v.fbPerPersonEur) || 0) > 0)) {
               if ((Number(v.baseFeeEur) || 0) > 0) {
                 serviceItems.push({
@@ -1116,7 +1204,7 @@
             }
 
             const vatItems = rawFlags
-              .filter((f) => f.type !== 'safe' && f.calcType === 'vat_pct')
+              .filter((f) => f.type !== 'safe' && isPctItem(f))
               .map((f) => ({
                 ...f,
                 calcType: 'vendor_vat_pct',
@@ -1279,7 +1367,7 @@
               baseFeeEur: addon.baseFeeEur,
               fbPerPersonEur: addon.fbPerPersonEur,
               flags: addon.rawFlags
-                .filter((f) => f.calcType === 'vat_pct' || f.type === 'safe')
+                .filter((f) => f.calcType === 'vat_pct' || f.calcType === 'service_pct' || f.type === 'safe')
                 .map((f, idx) => ({
                   id: `${uid}-f-${idx}`,
                   category: CANONICAL_CATEGORY_ORDER.includes(f.category) ? f.category : undefined,
@@ -1336,6 +1424,12 @@
 
           async processUploadedFiles(files, targetVenueId = null) {
             if (this.isScanning || this.cardScanningId) return;
+            if (this.needKey()) {
+              this.editingKey = true;
+              this.showToast(this.t('toastKeyNeeded'));
+              this.$nextTick(() => document.getElementById('api-key-box')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+              return;
+            }
 
             if (targetVenueId) {
               this.cardScanningId = targetVenueId;
@@ -1361,24 +1455,26 @@
               }
 
               try {
+                if (file.size > MAX_FILE_BYTES) {
+                  throw new Error(this.lang === 'tr' ? 'Dosya 14 MB sınırını aşıyor.' : 'File exceeds the 14 MB limit.');
+                }
+
                 const base64Data = await readFileAsBase64(file);
                 const mimeType = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/png');
                 const isImageFile = mimeType.startsWith('image/');
                 const uploadedPreviewUrl = isImageFile ? `data:${mimeType};base64,${base64Data}` : '';
 
-                const resp = await fetch('/api/decode-quote', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
+                let payload;
+                try {
+                  payload = await window.__DECODE__.decodeQuote({
+                    apiKey: this.geminiKey,
                     fileName: file.name,
                     mimeType,
                     base64Data,
-                  }),
-                });
-
-                const payload = await resp.json();
-                if (!resp.ok || !payload.venue) {
-                  throw new Error(payload.error || 'AI decode failed');
+                  });
+                } catch (decodeErr) {
+                  if (decodeErr.code === 'API_KEY_INVALID') this.editingKey = true;
+                  throw decodeErr;
                 }
 
                 const v = payload.venue;
@@ -1441,7 +1537,7 @@
                           type: f.type === 'safe' ? 'safe' : 'risk',
                           label: f.label || { tr: 'Ek Kalem', en: 'Additional Item' },
                           detail: f.detail || { tr: '', en: '' },
-                          calcType: ['fixed', 'per_guest', 'vat_pct'].includes(f.calcType) ? f.calcType : 'fixed',
+                          calcType: ['fixed', 'per_guest', 'service_pct', 'vat_pct'].includes(f.calcType) ? f.calcType : 'fixed',
                           amount: Number(f.amount) || 0,
                           active: Boolean(f.active),
                         }))
@@ -1625,9 +1721,8 @@
       }
     </script>
 
-    <!-- Alpine.js & Lucide Icons via CDN -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Lucide Icons via CDN (pinned); Alpine.js is bundled and started from the module script above -->
+    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
   </head>
 
   <body x-data="weddingQuoteApp()" x-init="init()" class="min-h-screen silk-ambient-canvas bg-pearl text-obsidian selection:bg-obsidian selection:text-pearl">
@@ -1721,6 +1816,43 @@
           ></p>
         </div>
 
+        <!-- Gemini API key (BYOK) -->
+        <div
+          id="api-key-box"
+          class="mx-auto mt-8 max-w-5xl rounded-2xl border border-champagne-line bg-white/85 p-5 backdrop-blur-xl sm:p-6"
+        >
+          <div x-show="geminiKey && !editingKey" class="flex flex-wrap items-center justify-between gap-3">
+            <p class="text-sm text-obsidian">
+              <span class="font-semibold" x-text="t('keySavedLabel')"></span>
+              <span class="ml-2 font-mono text-xs text-stone" x-text="maskedKey()"></span>
+            </p>
+            <div class="flex items-center gap-2">
+              <button type="button" @click="editingKey = true" class="rounded-full px-4 py-2 text-xs font-medium text-stone transition-colors hover:bg-champagne-soft hover:text-obsidian" x-text="t('keyChange')"></button>
+              <button type="button" @click="clearKey()" class="rounded-full px-4 py-2 text-xs font-medium text-stone transition-colors hover:bg-peony-bg hover:text-peony" x-text="t('keyRemove')"></button>
+            </div>
+          </div>
+
+          <form x-show="!geminiKey || editingKey" @submit.prevent="saveKey()" class="space-y-3">
+            <div>
+              <h2 class="text-sm font-semibold text-obsidian" x-text="t('keyTitle')"></h2>
+              <p class="mt-1 text-xs leading-relaxed text-stone" x-text="t('keyBody')"></p>
+            </div>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input
+                type="password"
+                x-model="keyDraft"
+                autocomplete="off"
+                spellcheck="false"
+                :placeholder="t('keyPlaceholder')"
+                :aria-label="t('keyTitle')"
+                class="min-w-0 flex-1 rounded-xl border border-champagne-line bg-white px-4 py-2.5 font-mono text-sm text-obsidian focus:border-champagne focus:outline-none"
+              />
+              <button type="submit" class="rounded-full bg-obsidian px-5 py-2.5 text-sm font-semibold text-pearl transition-colors hover:bg-obsidian/90 whitespace-nowrap" x-text="t('keySave')"></button>
+            </div>
+            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="inline-block text-xs font-medium text-champagne underline underline-offset-2 hover:text-obsidian" x-text="t('keyGetLink')"></a>
+          </form>
+        </div>
+
         <!-- Floating Glass Atelier Card Dropzone -->
         <div
           class="relative mx-auto mt-8 max-w-5xl rounded-[28px] border bg-white/85 p-7 backdrop-blur-xl transition-all duration-200 sm:p-11"
@@ -1779,7 +1911,24 @@
               >
                 <span x-text="t('btnReset')"></span>
               </button>
+
+              <button
+                type="button"
+                x-show="venues.length > 0"
+                @click="exportBackup()"
+                class="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-medium text-stone transition-colors hover:bg-champagne-soft hover:text-obsidian whitespace-nowrap shrink-0"
+              >
+                <span x-text="t('btnBackupExport')"></span>
+              </button>
+
+              <label
+                class="inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-medium text-stone transition-colors hover:bg-champagne-soft hover:text-obsidian whitespace-nowrap shrink-0"
+              >
+                <span x-text="t('btnBackupImport')"></span>
+                <input type="file" accept="application/json,.json" class="sr-only" @change="importBackup($event)" />
+              </label>
             </div>
+            <p class="mt-3 text-[11px] text-stone" x-show="venues.length > 0" x-text="t('autosaveNote')"></p>
 
             <!-- Failed Files Recovery List -->
             <div
@@ -2127,7 +2276,7 @@
                         x-text="t('bestValueBadge')"
                       ></span>
                       <span
-                        x-show="!isBestValue(venue) && venues.length > 1"
+                        x-show="!isBestValue(venue) && getDeltaFromLowest(venue) > 0"
                         class="inline-flex items-center rounded-full border border-white/25 bg-obsidian/75 px-3 py-1 text-[11px] font-medium text-pearl tabular-nums backdrop-blur-md whitespace-nowrap"
                         x-text="`+${formatCurrency(getDeltaFromLowest(venue))} ${t('deltaSuffix')}`"
                       ></span>
@@ -2563,7 +2712,8 @@
                             >
                               <option value="fixed" x-text="t('newFlagTypeFixed')"></option>
                               <option value="per_guest" x-text="t('newFlagTypePerGuest')"></option>
-                              <option value="vat_pct" x-text="t('newFlagTypeVat')"></option>
+                            <option value="service_pct" x-text="t('newFlagTypeService')"></option>
+                            <option value="vat_pct" x-text="t('newFlagTypeVat')"></option>
                             </select>
                             <input
                               type="number"
