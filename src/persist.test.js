@@ -12,7 +12,7 @@ const venue = (over = {}) => ({
   showAddFlag: true,
   showUploadedPreview: true,
   uploadedPreviewUrl: 'data:image/png;base64,AAAA',
-  realPhotoUrl: '/api/venue-photo?url=https%3A%2F%2Fexample.org%2Fa.jpg',
+  realPhotoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/ab/Villa.jpg',
   realPhotoSourceUrl: 'https://example.org/a',
   realPhotoSourceLabel: 'example.org',
   realPhotoError: false,
@@ -47,6 +47,7 @@ const state = (over = {}) => ({ lang: 'tr', guestCount: 150, currency: 'TRY', ex
 
 test('gidis-donus: kartlar, misafir sayisi, para birimi korunur', () => {
   const out = parseState(serializeState(state()));
+  assert.equal(out.venues[0].realPhotoUrl, 'https://upload.wikimedia.org/wikipedia/commons/a/ab/Villa.jpg');
   assert.equal(out.guestCount, 150);
   assert.equal(out.currency, 'TRY');
   assert.equal(out.exchangeRate, 40);
@@ -97,9 +98,17 @@ test('dis kaynakli foto adresi ve bilinmeyen hesap tipi temizlenir', () => {
   raw.venues[0].coverKey = 'nope';
   const v = parseState(JSON.stringify(raw)).venues[0];
   assert.equal(v.realPhotoUrl, '');
+  raw.venues[0].realPhotoUrl = '/api/venue-photo?url=https%3A%2F%2Fexample.org%2Fa.jpg';
+  assert.equal(parseState(JSON.stringify(raw)).venues[0].realPhotoUrl, '');
   assert.equal(v.flags[0].calcType, 'fixed');
   assert.equal(v.flags[0].amount, 0);
   assert.equal(v.coverKey, 'lakeVilla');
+});
+
+test('thumb.wikimedia.org foto adresi korunur', () => {
+  const raw = JSON.parse(serializeState(state()));
+  raw.venues[0].realPhotoUrl = 'https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/x.jpg/1200px-x.jpg';
+  assert.equal(parseState(JSON.stringify(raw)).venues[0].realPhotoUrl, raw.venues[0].realPhotoUrl);
 });
 
 test('kimligi olmayan kart atlanir, eksik alanlar tamamlanir', () => {

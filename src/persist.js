@@ -4,7 +4,7 @@ const VERSION = 1;
 const COVER_KEYS = ['lakeVilla', 'bosphorusPalace', 'tuscanEstate', 'modernAtelier'];
 const CATEGORIES = ['tax', 'catering', 'music', 'floral', 'boat', 'photo', 'other'];
 const CALC_TYPES = ['fixed', 'per_guest', 'service_pct', 'vat_pct', 'vendor_vat_pct'];
-const PHOTO_PROXY_PREFIX = '/api/venue-photo?';
+const PHOTO_URL_PREFIXES = ['https://upload.wikimedia.org/', 'https://thumb.wikimedia.org/'];
 
 const str = (v, fallback = '') => (typeof v === 'string' ? v : fallback);
 const num = (v, fallback = 0) => (Number.isFinite(Number(v)) && v !== null && v !== '' ? Number(v) : fallback);
@@ -35,7 +35,7 @@ function sanitizeFlag(raw, index) {
 }
 
 function sanitizeVenue(raw) {
-  const realPhotoUrl = str(raw.realPhotoUrl).startsWith(PHOTO_PROXY_PREFIX) ? raw.realPhotoUrl : '';
+  const realPhotoUrl = PHOTO_URL_PREFIXES.some((prefix) => str(raw.realPhotoUrl).startsWith(prefix)) ? raw.realPhotoUrl : '';
   return {
     id: raw.id,
     name: str(raw.name),

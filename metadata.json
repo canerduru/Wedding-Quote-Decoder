@@ -1,6 +1,0 @@
-{
-  "name": "Wedding Quote Decoder",
-  "description": "Lüks düğün mekanı tekliflerini saniyeler içinde çözümleyen, gizli maliyetleri ve KDV farklarını ortaya çıkaran editoryal karşılaştırma paneli.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

@@ -25,7 +25,7 @@
     />
 
     <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
     <script>
       tailwind.config = {
         theme: {
@@ -145,11 +145,21 @@
       import bosphorusPalace from '/src/assets/images/venue_bosphorus_palace_1794746162314.jpg';
       import tuscanEstate from '/src/assets/images/venue_tuscan_estate_1794746162354.jpg';
       import modernAtelier from '/src/assets/images/venue_modern_atelier_1794746162634.jpg';
+      import Alpine from 'alpinejs';
       import * as calc from '/src/calc.js';
       import * as persist from '/src/persist.js';
+      import * as decode from '/src/decode.js';
+      import * as photo from '/src/photo.js';
+      import * as apikey from '/src/apikey.js';
 
       window.__CALC__ = calc;
       window.__PERSIST__ = persist;
+      window.__DECODE__ = decode;
+      window.__PHOTO__ = photo;
+      window.__APIKEY__ = apikey;
+
+      window.Alpine = Alpine;
+      Alpine.start();
 
       window.__VENUE_COVERS__ = {
         lakeVilla,
@@ -214,13 +224,13 @@
           dropzoneCopy:
             'WhatsApp Ekran Görüntülerini (JPEG/PNG) veya Mekan PDF’lerini Buraya Bırakın. Excel eziyeti bitsin, yapay zeka saniyeler içinde karşılaştırsın.',
           dropzoneFormats:
-            'Çoklu dosya seçimi desteklenir · PNG, JPEG, WEBP, PDF · Maks. 20 MB',
+            'Çoklu dosya seçimi desteklenir · PNG, JPEG, WEBP, PDF · Maks. 14 MB',
           btnChooseFile: 'Çoklu Dosya Seç veya Sürükle',
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
           keyTitle: 'Gemini API anahtarınızı girin',
           keyBody:
-            'Teklifleri okumak için kendi Gemini anahtarınız kullanılır. Anahtar yalnızca bu tarayıcıda saklanır; her okumada bu sitenin sunucusuna iletilir ve sunucuda kaydedilmez.',
+            'Teklifleri okumak için kendi Gemini anahtarınız kullanılır. Anahtar yalnızca bu tarayıcıda saklanır ve belgeleri okurken doğrudan Google’a gönderilir; başka hiçbir sunucuya uğramaz.',
           keyPlaceholder: 'AIza...',
           keySave: 'Kaydet',
           keyChange: 'Değiştir',
@@ -364,13 +374,13 @@
           dropzoneCopy:
             'Drop WhatsApp Screenshots (JPEG/PNG) or Venue PDFs Here. End spreadsheet fatigue—decode hidden costs in seconds.',
           dropzoneFormats:
-            'Multi-file selection supported · PNG, JPEG, WEBP, PDF · Max 20 MB',
+            'Multi-file selection supported · PNG, JPEG, WEBP, PDF · Max 14 MB',
           btnChooseFile: 'Select or Drop Multiple Files',
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
           keyTitle: 'Enter your Gemini API key',
           keyBody:
-            'Quotes are read with your own Gemini key. It stays in this browser only; it is sent to this site\'s server with each read and is never stored there.',
+            'Quotes are read with your own Gemini key. It stays in this browser only and is sent straight to Google when reading a document; it never passes through any other server.',
           keyPlaceholder: 'AIza...',
           keySave: 'Save',
           keyChange: 'Change',
@@ -513,6 +523,8 @@
           .trim();
       }
 
+      const MAX_FILE_BYTES = 14 * 1024 * 1024;
+
       function readFileAsBase64(file) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -546,7 +558,6 @@
           batchQueue: [],
           failedQueue: [],
           geminiKey: '',
-          keyRequired: null,
           keyDraft: '',
           editingKey: false,
           showSummaryModal: false,
@@ -572,16 +583,6 @@
             } catch {
               // localStorage unavailable
             }
-            fetch('/api/config')
-              .then((r) => r.json())
-              .then((c) => {
-                this.keyRequired = Boolean(c.keyRequired);
-                this.refreshIcons();
-              })
-              .catch(() => {
-                this.keyRequired = true;
-              });
-
             let saveTimer = null;
             this.$watch(
               () => P.serializeState(this),
@@ -603,7 +604,7 @@
           },
 
           needKey() {
-            return this.keyRequired !== false && !this.geminiKey;
+            return !this.geminiKey;
           },
 
           maskedKey() {
@@ -611,15 +612,9 @@
             return k.length > 8 ? `${k.slice(0, 4)}…${k.slice(-4)}` : '••••';
           },
 
-          apiHeaders() {
-            const headers = { 'Content-Type': 'application/json' };
-            if (this.geminiKey) headers['x-gemini-key'] = this.geminiKey;
-            return headers;
-          },
-
           saveKey() {
             const key = (this.keyDraft || '').trim();
-            if (!/^[A-Za-z0-9_-]{20,128}$/.test(key)) {
+            if (!window.__APIKEY__.isValidKeyFormat(key)) {
               this.showToast(this.t('toastKeyFormat'));
               return;
             }
@@ -812,18 +807,13 @@
             venue.realPhotoError = false;
 
             try {
-              const resp = await fetch('/api/find-venue-photo', {
-                method: 'POST',
-                headers: this.apiHeaders(),
-                body: JSON.stringify({ name, region, force }),
-              });
-              const data = await resp.json();
+              const data = await window.__PHOTO__.findVenuePhoto({ name, region });
 
               const currentVenue = this.venues.find((v) => v.id === venueId);
               if (!currentVenue || currentVenue.photoQueryKey !== queryKey) return;
 
-              if (resp.ok && data?.found && data?.proxyUrl) {
-                currentVenue.realPhotoUrl = data.proxyUrl;
+              if (data.found) {
+                currentVenue.realPhotoUrl = data.imageUrl;
                 currentVenue.realPhotoSourceUrl = data.sourceUrl || '';
                 currentVenue.realPhotoSourceLabel = data.sourceLabel || '';
                 currentVenue.realPhotoError = false;
@@ -1465,27 +1455,26 @@
               }
 
               try {
+                if (file.size > MAX_FILE_BYTES) {
+                  throw new Error(this.lang === 'tr' ? 'Dosya 14 MB sınırını aşıyor.' : 'File exceeds the 14 MB limit.');
+                }
+
                 const base64Data = await readFileAsBase64(file);
                 const mimeType = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'image/png');
                 const isImageFile = mimeType.startsWith('image/');
                 const uploadedPreviewUrl = isImageFile ? `data:${mimeType};base64,${base64Data}` : '';
 
-                const resp = await fetch('/api/decode-quote', {
-                  method: 'POST',
-                  headers: this.apiHeaders(),
-                  body: JSON.stringify({
+                let payload;
+                try {
+                  payload = await window.__DECODE__.decodeQuote({
+                    apiKey: this.geminiKey,
                     fileName: file.name,
                     mimeType,
                     base64Data,
-                  }),
-                });
-
-                const payload = await resp.json();
-                if (payload.code === 'API_KEY_REQUIRED' || payload.code === 'API_KEY_INVALID') {
-                  this.editingKey = true;
-                }
-                if (!resp.ok || !payload.venue) {
-                  throw new Error(payload.error || 'AI decode failed');
+                  });
+                } catch (decodeErr) {
+                  if (decodeErr.code === 'API_KEY_INVALID') this.editingKey = true;
+                  throw decodeErr;
                 }
 
                 const v = payload.venue;
@@ -1732,9 +1721,8 @@
       }
     </script>
 
-    <!-- Alpine.js & Lucide Icons via CDN -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Lucide Icons via CDN (pinned); Alpine.js is bundled and started from the module script above -->
+    <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
   </head>
 
   <body x-data="weddingQuoteApp()" x-init="init()" class="min-h-screen silk-ambient-canvas bg-pearl text-obsidian selection:bg-obsidian selection:text-pearl">
@@ -1831,8 +1819,6 @@
         <!-- Gemini API key (BYOK) -->
         <div
           id="api-key-box"
-          x-show="keyRequired !== false"
-          x-cloak
           class="mx-auto mt-8 max-w-5xl rounded-2xl border border-champagne-line bg-white/85 p-5 backdrop-blur-xl sm:p-6"
         >
           <div x-show="geminiKey && !editingKey" class="flex flex-wrap items-center justify-between gap-3">
