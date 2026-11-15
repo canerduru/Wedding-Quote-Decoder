@@ -387,7 +387,7 @@
           toastKeyNeeded: 'Önce Gemini API anahtarınızı girin.',
           toastKeySaved: 'Anahtar kaydedildi.',
           toastKeyRemoved: 'Anahtar silindi.',
-          toastKeyFormat: 'Anahtar geçerli görünmüyor. Google AI Studio’dan aldığınız anahtarı yapıştırın.',
+          toastKeyFormat: 'Anahtar biçimi tanınmadı. Anahtarı olduğu gibi, boşluk ve Türkçe karakter olmadan yapıştırın.',
           toastImported: 'Yedek yüklendi. Teklif görselleri yedeğe dahil değildir.',
           toastImportFailed: 'Bu dosya geçerli bir yedek değil.',
           toastVenueAdded: 'mekan teklifi okundu ve karşılaştırmaya eklendi.',
@@ -568,7 +568,7 @@
           toastKeyNeeded: 'Enter your Gemini API key first.',
           toastKeySaved: 'Key saved.',
           toastKeyRemoved: 'Key removed.',
-          toastKeyFormat: 'That key does not look valid. Paste the key from Google AI Studio.',
+          toastKeyFormat: 'Key format not recognised. Paste the key exactly as issued, without spaces or non-ASCII characters.',
           toastImported: 'Backup restored. Quote screenshots are not part of backups.',
           toastImportFailed: 'This file is not a valid backup.',
           toastVenueAdded: 'venue quote(s) decoded and added to comparison.',
@@ -760,7 +760,7 @@
           },
 
           saveKey() {
-            const key = (this.keyDraft || '').trim();
+            const key = window.__APIKEY__.normalizeKey(this.keyDraft);
             if (!window.__APIKEY__.isValidKeyFormat(key)) {
               this.showToast(this.t('toastKeyFormat'));
               return;
