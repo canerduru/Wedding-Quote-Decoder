@@ -1,3 +1,4 @@
+import { clampGuests } from './guests.js';
 import { DEFAULT_RATES } from './rates.js';
 
 export const STORAGE_KEY = 'wqd:v1';
@@ -70,11 +71,11 @@ function sanitizeVenue(raw) {
 }
 
 function sanitizeState(raw) {
-  const guestCount = num(raw.guestCount, 120);
+  const guestCount = clampGuests(raw.guestCount) ?? 120;
   const exchangeRate = num(raw.exchangeRate, DEFAULT_RATES.TRY);
   return {
     lang: raw.lang === 'en' ? 'en' : 'tr',
-    guestCount: guestCount > 0 ? guestCount : 120,
+    guestCount,
     currency: raw.currency === 'TRY' ? 'TRY' : 'EUR',
     exchangeRate: exchangeRate > 0 ? exchangeRate : DEFAULT_RATES.TRY,
     venues: raw.venues.filter((v) => v && str(v.id)).map(sanitizeVenue),

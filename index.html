@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wedding Quote Decoder — Düğün Mekanı Teklifi Karşılaştırma Atölyesi</title>
+    <title>Wedding Quote Decoder — Düğün Mekanı Teklifi Karşılaştırma Aracı</title>
     <meta
       name="description"
-      content="Yüklediğiniz WhatsApp ekran görüntüleri ve PDF mekan tekliflerini tek sayfada çözen, dış hizmet tekliflerini eşleştiren ve şeffafça karşılaştırmanıza olanak veren dijital düğün bütçe atölyesi."
+      content="Yüklediğiniz WhatsApp ekran görüntüleri ve PDF mekan tekliflerini tek sayfada çözen, dış hizmet tekliflerini eşleştiren ve şeffafça karşılaştırmanıza olanak veren düğün bütçe aracı."
     />
     <meta property="og:title" content="Wedding Quote Decoder" />
     <meta
       property="og:description"
-      content="Yüklediğiniz WhatsApp ekran görüntüleri ve PDF mekan tekliflerini tek sayfada çözen, dış hizmet tekliflerini eşleştiren ve şeffafça karşılaştırmanıza olanak veren dijital düğün bütçe atölyesi."
+      content="Yüklediğiniz WhatsApp ekran görüntüleri ve PDF mekan tekliflerini tek sayfada çözen, dış hizmet tekliflerini eşleştiren ve şeffafça karşılaştırmanıza olanak veren düğün bütçe aracı."
     />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -152,6 +152,7 @@
       import * as photo from '/src/photo.js';
       import * as apikey from '/src/apikey.js';
       import * as rates from '/src/rates.js';
+      import * as guests from '/src/guests.js';
 
       window.__CALC__ = calc;
       window.__PERSIST__ = persist;
@@ -159,6 +160,7 @@
       window.__PHOTO__ = photo;
       window.__APIKEY__ = apikey;
       window.__RATES__ = rates;
+      window.__GUESTS__ = guests;
 
       window.Alpine = Alpine;
       Alpine.start();
@@ -215,11 +217,11 @@
 
       const I18N = {
         tr: {
-          pageTitle: 'Wedding Quote Decoder — Düğün Mekanı Teklifi Karşılaştırma Atölyesi',
+          pageTitle: 'Wedding Quote Decoder — Düğün Mekanı Teklifi Karşılaştırma Aracı',
           navUpload: 'Teklif Yükle',
           navCompare: 'Karşılaştırma',
           shareSummaryCta: 'Ortak Özet',
-          heroKicker: 'Dijital Düğün Bütçe Atölyesi · Çoklu Görsel & PDF Okuyucu',
+          heroKicker: 'Düğün Bütçe Aracı · Çoklu Görsel & PDF Okuyucu',
           heroTitle: 'Yüklediğiniz teklifleri tek ekranda zarafetle karşılaştırın.',
           heroSubtitle:
             'Mekan ve dış hizmet (çiçek, tekne, catering, DJ) tekliflerini bırakın. Yapay zeka belge türünü otomatik tanır; mekanları yan yana dizer, gizli maliyetleri şeffafça hesaplar.',
@@ -272,7 +274,7 @@
           activeVenuesLabel: 'mekan karşılaştırılıyor',
           comparisonTitle: 'Mekan Karşılaştırma Koleksiyonu',
           comparisonSubtitleTail:
-            'davetli için kira, ikram ve seçili ek maliyetler dahil anahtar teslim görünüm.',
+            'davetli için kira, ikram ve seçili ek maliyetler dahil, tüm kalemleri içeren toplam görünüm.',
           comparisonHint:
             'İsimleri, tutarları ve gizli kalemleri doğrudan kart üzerinde düzenleyebilirsiniz.',
           guideTitle: 'Kendi Tekliflerinizi Yükleyerek Başlayın',
@@ -300,23 +302,23 @@
           nameEditLabel: 'Mekan Adı',
           regionEditLabel: 'Bölge / Şehir',
           baseFeeEditLabel: 'Mekan Kirası (€)',
-          fbEditLabel: 'Kişi Başı F&B (€)',
+          fbEditLabel: 'Kişi Başı Yemek & İçecek (€)',
           baseFeeLabel: 'Mekan Kirası',
-          fbPerPersonLabel: 'Kişi Başı F&B',
+          fbPerPersonLabel: 'Kişi Başı Yemek & İçecek',
           selectedExtrasLabel: 'Seçili Ekler & Vergiler',
           budgetMixLabel: 'Maliyet Dağılımı',
           legendRent: 'Kira',
-          legendFb: 'F&B',
+          legendFb: 'Yemek',
           legendExtras: 'Ekler & KDV',
-          turnkeyTitle: 'Anahtar Teslim Toplam Maliyet',
+          turnkeyTitle: 'Gerçek Toplam Maliyet',
           bestValueBadge: '✨ En Avantajlı Seçim',
           deltaSuffix: 'fark',
           perGuestNet: 'Kişi başı net:',
           aiFlagsTitle: 'Ek Hizmetler & Gizli Maliyetler',
-          aiFlagsHint: 'Tüm kartlarda sabit sırada hizalı',
+          aiFlagsHint: 'Tüm kartlarda aynı sırayla',
           categoryNotSpecified: 'Bu teklifte belirtilmedi',
           quickAddCategoryBtn: '+ Ekle',
-          newFlagCategoryLabel: 'Kategori (Hiza Grubu)',
+          newFlagCategoryLabel: 'Kategori',
           newFlagCategoryAuto: 'Otomatik Algıla',
           excludedLabel: 'Hariç',
           includedLabel: 'Dahil',
@@ -332,18 +334,19 @@
           btnCancelNewFlag: 'İptal',
           noFlagsYet: 'Henüz ek maliyet kalemi yok. Aşağıdan yeni kalem ekleyebilir veya ek hizmet teklifi bırakabilirsiniz.',
           viewQuoteShot: 'Teklif Görseli',
-          viewMoodCover: 'Mekan Atmosferi',
+          viewMoodCover: 'Temsili Görsel',
+          illustrativeBadge: 'Temsili görsel',
           viewRealPhoto: 'Gerçek Fotoğraf',
           photoSearching: 'Gerçek mekan fotoğrafı aranıyor...',
           photoRefreshTitle: 'İnternetten mekan fotoğrafını ara / yenile',
-          footerTagline: 'Dijital Gelinlik & Mekan Bütçe Atölyesi · Yalnızca Sizin Teklifleriniz',
+          footerTagline: 'Düğün Bütçe Aracı · Yalnızca Sizin Teklifleriniz',
           modalKicker: 'Partner & Planlayıcı Özeti',
           modalTitle: 'Ortak Paylaşım Özeti',
           modalClose: 'Kapat',
           modalGuests: 'Davetli Sayısı:',
           modalCurrency: 'Para Birimi:',
           modalBaseRent: 'Mekan Kirası',
-          modalFbTotal: 'F&B Toplam',
+          modalFbTotal: 'Yemek & İçecek Toplam',
           modalHiddenVat: 'Ek Hizmetler & KDV',
           btnPrintPdf: 'Yazdır / PDF Kaydet',
           btnCopySummary: 'Özeti Kopyala',
@@ -370,14 +373,14 @@
           toastLangSwitched: 'Arayüz dili Türkçe olarak güncellendi.',
         },
         en: {
-          pageTitle: 'Wedding Quote Decoder — Digital Bridal Venue & Vendor Budget Atelier',
+          pageTitle: 'Wedding Quote Decoder — Wedding Venue & Vendor Quote Comparison',
           navUpload: 'Upload Quotes',
           navCompare: 'Comparison',
           shareSummaryCta: 'Share Summary',
-          heroKicker: 'Digital Bridal Budget Atelier · Multi-Image & PDF Reader',
+          heroKicker: 'Wedding Budget Tool · Multi-Image & PDF Reader',
           heroTitle: 'Compare your venue and vendor quotes on one luminous canvas.',
           heroSubtitle:
-            'Drop venue proposals or standalone service quotes (florist, boat, catering, DJ). AI classifies documents automatically and reveals true turnkey totals.',
+            'Drop venue proposals or standalone service quotes (florist, boat, catering, DJ). AI classifies documents automatically and reveals true totals.',
           dropzoneCopy:
             'Drop WhatsApp Screenshots (JPEG/PNG) or Venue PDFs Here. End spreadsheet fatigue—decode hidden costs in seconds.',
           dropzoneFormats:
@@ -427,7 +430,7 @@
           activeVenuesLabel: 'venues compared',
           comparisonTitle: 'Curated Venue Comparison',
           comparisonSubtitleTail:
-            'guests — net turnkey view including rental, catering, vendor add-ons, and taxes.',
+            'guests — the full all-in view including rental, catering, vendor add-ons, and taxes.',
           comparisonHint:
             'Edit names, figures, and cost switches directly—or drop add-on quotes onto any card.',
           guideTitle: 'Start by Uploading Your Own Quotes',
@@ -455,23 +458,23 @@
           nameEditLabel: 'Venue Name',
           regionEditLabel: 'Region / City',
           baseFeeEditLabel: 'Venue Rental (€)',
-          fbEditLabel: 'Per-Guest F&B (€)',
+          fbEditLabel: 'Per-Guest Food & Drink (€)',
           baseFeeLabel: 'Venue Rental',
-          fbPerPersonLabel: 'Per-Guest F&B',
+          fbPerPersonLabel: 'Per-Guest Food & Drink',
           selectedExtrasLabel: 'Selected Add-Ons & VAT',
           budgetMixLabel: 'Cost Mix',
           legendRent: 'Rental',
-          legendFb: 'F&B',
+          legendFb: 'Food',
           legendExtras: 'Extras & VAT',
-          turnkeyTitle: 'Turnkey Total Cost',
+          turnkeyTitle: 'True Total Cost',
           bestValueBadge: '✨ Most Advantageous',
           deltaSuffix: 'difference',
           perGuestNet: 'Net per guest:',
           aiFlagsTitle: 'Vendor Add-Ons & Hidden Costs',
-          aiFlagsHint: 'Aligned in fixed order across cards',
+          aiFlagsHint: 'Same order on every card',
           categoryNotSpecified: 'Not specified in this quote',
           quickAddCategoryBtn: '+ Add',
-          newFlagCategoryLabel: 'Category (Alignment Group)',
+          newFlagCategoryLabel: 'Category',
           newFlagCategoryAuto: 'Auto-Detect',
           excludedLabel: 'Excluded',
           includedLabel: 'Included',
@@ -487,18 +490,19 @@
           btnCancelNewFlag: 'Cancel',
           noFlagsYet: 'No extra cost items yet. Add a custom surcharge or drop a vendor quote below.',
           viewQuoteShot: 'Quote Image',
-          viewMoodCover: 'Venue Mood',
+          viewMoodCover: 'Illustrative Image',
+          illustrativeBadge: 'Illustrative image',
           viewRealPhoto: 'Real Photo',
           photoSearching: 'Finding real venue photo...',
           photoRefreshTitle: 'Search / refresh real venue photo online',
-          footerTagline: 'Digital Bridal Budget Atelier · Only Your Quotes',
+          footerTagline: 'Wedding Budget Tool · Only Your Quotes',
           modalKicker: 'Partner & Planner Brief',
           modalTitle: 'Shareable Comparison Summary',
           modalClose: 'Close',
           modalGuests: 'Guest Count:',
           modalCurrency: 'Currency:',
           modalBaseRent: 'Venue Rental',
-          modalFbTotal: 'F&B Subtotal',
+          modalFbTotal: 'Food & Drink Subtotal',
           modalHiddenVat: 'Add-Ons, Extras & VAT',
           btnPrintPdf: 'Print / Save PDF',
           btnCopySummary: 'Copy Summary',
@@ -613,6 +617,16 @@
             this.$nextTick(() => {
               if (window.lucide) window.lucide.createIcons();
             });
+          },
+
+          setGuests(event) {
+            const value = window.__GUESTS__.clampGuests(event.target.value);
+            if (value === null) {
+              event.target.value = this.guestCount;
+              return;
+            }
+            this.guestCount = value;
+            event.target.value = value;
           },
 
           fxRates() {
@@ -733,9 +747,7 @@
           },
 
           getSliderProgressStyle() {
-            const min = 5;
-            const max = 300;
-            const pct = Math.min(100, Math.max(0, ((this.guestCount - min) / (max - min)) * 100));
+            const pct = window.__GUESTS__.sliderPercent(this.guestCount);
             return `background: linear-gradient(to right, #C8A97E 0%, #C8A97E ${pct}%, #EFE6E0 ${pct}%, #EFE6E0 100%)`;
           },
 
@@ -1733,11 +1745,11 @@
               if (this.lang === 'tr') {
                 lines.push(`   • Mekan Kirası: ${this.formatCurrency(v.baseFeeEur)}`);
                 lines.push(
-                  `   • Kişi Başı F&B (${this.guestCount} kişi): ${this.formatCurrency(v.fbPerPersonEur)} -> ${this.formatCurrency(b.fbSubtotalEur)}`
+                  `   • Kişi Başı Yemek & İçecek (${this.guestCount} kişi): ${this.formatCurrency(v.fbPerPersonEur)} -> ${this.formatCurrency(b.fbSubtotalEur)}`
                 );
                 lines.push(`   • Seçili Ek Hizmetler, Gizli Ekler & KDV: ${this.formatCurrency(b.hiddenExtrasTotalEur)}`);
                 lines.push(
-                  `   • Anahtar Teslim Toplam: ${this.formatCurrency(b.turnkeyTotalEur)} (${this.formatCurrency(b.effectivePerGuestEur)} / kişi)`
+                  `   • Gerçek Toplam: ${this.formatCurrency(b.turnkeyTotalEur)} (${this.formatCurrency(b.effectivePerGuestEur)} / kişi)`
                 );
                 if (activeRisks.length > 0) {
                   lines.push(`   • Dahil Edilen Kalemler: ${activeRisks.join('; ')}`);
@@ -1745,11 +1757,11 @@
               } else {
                 lines.push(`   • Venue Rental: ${this.formatCurrency(v.baseFeeEur)}`);
                 lines.push(
-                  `   • Per-Guest F&B (${this.guestCount} guests): ${this.formatCurrency(v.fbPerPersonEur)} -> ${this.formatCurrency(b.fbSubtotalEur)}`
+                  `   • Per-Guest Food & Drink (${this.guestCount} guests): ${this.formatCurrency(v.fbPerPersonEur)} -> ${this.formatCurrency(b.fbSubtotalEur)}`
                 );
                 lines.push(`   • Selected Add-Ons, Hidden Costs & VAT: ${this.formatCurrency(b.hiddenExtrasTotalEur)}`);
                 lines.push(
-                  `   • Turnkey Total: ${this.formatCurrency(b.turnkeyTotalEur)} (${this.formatCurrency(b.effectivePerGuestEur)} / guest)`
+                  `   • True Total: ${this.formatCurrency(b.turnkeyTotalEur)} (${this.formatCurrency(b.effectivePerGuestEur)} / guest)`
                 );
                 if (activeRisks.length > 0) {
                   lines.push(`   • Included Line Items: ${activeRisks.join('; ')}`);
@@ -2135,30 +2147,39 @@
         class="sticky top-0 z-30 border-y border-champagne-soft bg-white/80 backdrop-blur-xl"
       >
         <div class="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-3.5 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
-          <!-- Guest Count Slider (5 - 300) -->
+          <!-- Guest Count Slider (10 - 1000) -->
           <div class="flex flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-5">
             <div class="flex items-center justify-between sm:justify-start sm:gap-3 shrink-0">
               <label for="guestSlider" class="text-xs font-semibold tracking-wide uppercase text-stone whitespace-nowrap" x-text="t('guestLabel')"></label>
               <div class="flex items-baseline gap-1.5">
-                <span class="font-serif text-2xl font-semibold text-obsidian tabular-nums" x-text="guestCount"></span>
+                <input
+                  type="number"
+                  inputmode="numeric"
+                  min="10"
+                  max="1000"
+                  :value="guestCount"
+                  @change="setGuests($event)"
+                  :aria-label="t('guestLabel')"
+                  class="w-[4.5ch] border-b border-transparent bg-transparent text-right font-serif text-2xl font-semibold text-obsidian tabular-nums transition-colors hover:border-champagne focus:border-champagne focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
                 <span class="text-xs text-stone" x-text="t('guestUnit')"></span>
               </div>
             </div>
 
             <div class="flex flex-1 items-center gap-3">
-              <span class="hidden text-[11px] font-medium text-stone tabular-nums sm:inline">5</span>
+              <span class="hidden text-[11px] font-medium text-stone tabular-nums sm:inline">10</span>
               <input
                 id="guestSlider"
                 type="range"
-                min="5"
-                max="300"
+                min="10"
+                max="1000"
                 step="5"
                 x-model.number="guestCount"
                 :style="getSliderProgressStyle()"
                 class="atelier-slider w-full"
                 :aria-label="t('guestLabel')"
               />
-              <span class="hidden text-[11px] font-medium text-stone tabular-nums sm:inline">300</span>
+              <span class="hidden text-[11px] font-medium text-stone tabular-nums sm:inline">1000</span>
             </div>
           </div>
 
@@ -2416,6 +2437,12 @@
                       >
                         <span x-text="`📷 ${venue.realPhotoSourceLabel}`"></span>
                       </a>
+
+                      <span
+                        x-show="getActiveCoverKind(venue) === 'mood'"
+                        class="inline-flex items-center rounded-full border border-white/25 bg-obsidian/60 px-2.5 py-0.5 text-[10px] font-medium text-pearl/95 backdrop-blur-md"
+                        x-text="t('illustrativeBadge')"
+                      ></span>
                     </div>
                   </div>
 
