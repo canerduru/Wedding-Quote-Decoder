@@ -129,3 +129,13 @@ test('sema teklif kosullarini ister', async () => {
   assert.match(prompt, /validUntil/);
   assert.match(prompt, /NEVER invent/i);
 });
+
+test('kalem turu info secenegini ve fiyatsiz kalem kuralini icerir', async () => {
+  const h = harness([ok()]);
+  await decodeQuote(h.args);
+  const schema = h.calls[0].body.generationConfig.responseSchema;
+  assert.deepEqual(schema.properties.flags.items.properties.type.enum, ['risk', 'safe', 'info']);
+  const prompt = h.calls[0].body.contents[0].parts[1].text;
+  assert.match(prompt, /type="info"/);
+  assert.match(prompt, /amount 0/);
+});

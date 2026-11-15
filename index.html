@@ -155,6 +155,7 @@
       import * as guests from '/src/guests.js';
       import * as table from '/src/table.js';
       import * as terms from '/src/terms.js';
+      import * as completeness from '/src/completeness.js';
 
       window.__CALC__ = calc;
       window.__PERSIST__ = persist;
@@ -165,6 +166,7 @@
       window.__GUESTS__ = guests;
       window.__TABLE__ = table;
       window.__TERMS__ = terms;
+      window.__COMPLETE__ = completeness;
 
       window.Alpine = Alpine;
       Alpine.start();
@@ -236,6 +238,14 @@
           btnChooseFile: 'Çoklu Dosya Seç veya Sürükle',
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
+          flagInfoLabel: 'Bilgi',
+          flagNeedsPriceLabel: 'Ayrı fiyat gerekli',
+          flagPriceLabel: 'Fiyatı siz girin:',
+          flagPricePerGuest: 'Kişi başı fiyat:',
+          warnRentMissing: 'Mekan kirası bu teklifte yok; toplama dahil değil.',
+          warnFoodMissing: 'Yemek & içecek bu teklifte yok; toplama dahil değil.',
+          warnNeedsPriceTail: 'kalem için ayrı fiyat gerekli; toplama dahil değil.',
+          tableIncomplete: 'Eksik kalemler var',
           termsTitle: 'Teklif Koşulları',
           termsMinSpend: 'Minimum harcama',
           termsDeposit: 'Depozito & ödeme',
@@ -340,7 +350,7 @@
           legendFb: 'Yemek',
           legendExtras: 'Ekler & KDV',
           turnkeyTitle: 'Gerçek Toplam Maliyet',
-          bestValueBadge: '✨ En Avantajlı Seçim',
+          bestValueBadge: '✨ En Düşük Toplam',
           deltaSuffix: 'fark',
           perGuestNet: 'Kişi başı net:',
           aiFlagsTitle: 'Ek Hizmetler & Gizli Maliyetler',
@@ -417,6 +427,14 @@
           btnChooseFile: 'Select or Drop Multiple Files',
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
+          flagInfoLabel: 'Info',
+          flagNeedsPriceLabel: 'Separate price needed',
+          flagPriceLabel: 'Enter the price:',
+          flagPricePerGuest: 'Price per guest:',
+          warnRentMissing: 'Venue rental is not in this quote; it is not counted in the total.',
+          warnFoodMissing: 'Food & drink is not in this quote; it is not counted in the total.',
+          warnNeedsPriceTail: 'item(s) need a separate price; not counted in the total.',
+          tableIncomplete: 'Some items are missing',
           termsTitle: 'Quote Terms',
           termsMinSpend: 'Minimum spend',
           termsDeposit: 'Deposit & payment',
@@ -521,7 +539,7 @@
           legendFb: 'Food',
           legendExtras: 'Extras & VAT',
           turnkeyTitle: 'True Total Cost',
-          bestValueBadge: '✨ Most Advantageous',
+          bestValueBadge: '✨ Lowest Total',
           deltaSuffix: 'difference',
           perGuestNet: 'Net per guest:',
           aiFlagsTitle: 'Vendor Add-Ons & Hidden Costs',
@@ -674,6 +692,26 @@
             this.$nextTick(() => {
               if (window.lucide) window.lucide.createIcons();
             });
+          },
+
+          completeness(venue) {
+            return window.__COMPLETE__.completeness(venue);
+          },
+
+          needsPrice(flag) {
+            return window.__COMPLETE__.needsPrice(flag);
+          },
+
+          setFlagPrice(venueId, flagId, event) {
+            const value = Number(event.target.value);
+            if (!(value > 0)) return;
+            const venue = this.venues.find((v) => v.id === venueId);
+            const flag = venue?.flags.find((f) => f.id === flagId);
+            if (!flag) return;
+            const inTry = this.currency === 'TRY';
+            flag.amount = inTry ? value / this.exchangeRate : value;
+            flag.sourceCurrency = inTry ? 'TRY' : 'EUR';
+            flag.active = true;
           },
 
           validityText(validUntil) {
@@ -1310,7 +1348,7 @@
             const rawFlags = Array.isArray(v.flags) ? v.flags : [];
 
             const isPctItem = (f) => f.calcType === 'vat_pct' || f.calcType === 'service_pct';
-            const serviceItems = rawFlags.filter((f) => f.type !== 'safe' && !isPctItem(f));
+            const serviceItems = rawFlags.filter((f) => f.type === 'risk' && !isPctItem(f));
             if (serviceItems.length === 0 && ((Number(v.baseFeeEur) || 0) > 0 || (Number(v.fbPerPersonEur) || 0) > 0)) {
               if ((Number(v.baseFeeEur) || 0) > 0) {
                 serviceItems.push({
@@ -1358,7 +1396,7 @@
             }
 
             const vatItems = rawFlags
-              .filter((f) => f.type !== 'safe' && isPctItem(f))
+              .filter((f) => f.type === 'risk' && isPctItem(f))
               .map((f) => ({
                 ...f,
                 calcType: 'vendor_vat_pct',
@@ -1367,7 +1405,8 @@
               }));
 
             const safeItems = rawFlags.filter((f) => f.type === 'safe');
-            const itemizedFlags = [...serviceItems, ...vatItems, ...safeItems];
+            const infoItems = rawFlags.filter((f) => f.type === 'info');
+            const itemizedFlags = [...serviceItems, ...vatItems, ...safeItems, ...infoItems];
 
             return {
               id: 'addon-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
@@ -1445,7 +1484,7 @@
             addon.itemizedFlags.forEach((f, idx) => {
               venue.flags.push({
                 id: `${venue.id}-v-${stamp}-${idx}`,
-                type: f.type === 'safe' ? 'safe' : 'risk',
+                type: f.type === 'safe' || f.type === 'info' ? f.type : 'risk',
                 vendorCategory: addon.vendorCategory,
                 vendorSourceFile: addon.fileName,
                 vendorName: addon.vendorName,
@@ -1456,7 +1495,7 @@
                 vendorBaseEur: Number(f.vendorBaseEur) || 0,
                 vendorPerGuestEur: Number(f.vendorPerGuestEur) || 0,
                 sourceCurrency: f.sourceCurrency,
-                active: f.type === 'safe' ? false : Boolean(f.active),
+                active: f.type === 'safe' || f.type === 'info' ? false : Boolean(f.active),
               });
             });
 
@@ -1519,19 +1558,19 @@
               venueType: addon.venueType,
               capacityLabel: { tr: 'Bağımsız Hizmet', en: 'Standalone Service' },
               sourceLabel: {
-                tr: `Dosya: ${addon.fileName}${addon.originalCurrencyNote?.tr ? ' · ' + addon.originalCurrencyNote.tr : ''}`,
-                en: `File: ${addon.fileName}${addon.originalCurrencyNote?.en ? ' · ' + addon.originalCurrencyNote.en : ''}`,
+                tr: `Dosya: ${addon.fileName}${addon.sourceCurrency ? ' · ' + addon.sourceCurrency : ''}`,
+                en: `File: ${addon.fileName}${addon.sourceCurrency ? ' · ' + addon.sourceCurrency : ''}`,
               },
               sourceCurrency: addon.sourceCurrency || '',
               ...window.__TERMS__.emptyTerms(),
               baseFeeEur: addon.baseFeeEur,
               fbPerPersonEur: addon.fbPerPersonEur,
               flags: addon.rawFlags
-                .filter((f) => f.calcType === 'vat_pct' || f.calcType === 'service_pct' || f.type === 'safe')
+                .filter((f) => f.calcType === 'vat_pct' || f.calcType === 'service_pct' || f.type === 'safe' || f.type === 'info')
                 .map((f, idx) => ({
                   id: `${uid}-f-${idx}`,
                   category: CANONICAL_CATEGORY_ORDER.includes(f.category) ? f.category : undefined,
-                  type: f.type === 'safe' ? 'safe' : 'risk',
+                  type: f.type === 'safe' || f.type === 'info' ? f.type : 'risk',
                   label: f.label,
                   detail: f.detail,
                   calcType: f.calcType,
@@ -1688,8 +1727,8 @@
                     venueType: typeObj,
                     capacityLabel: v.capacityLabel || { tr: 'Kapasite Belirtilmedi', en: 'Capacity Unspecified' },
                     sourceLabel: {
-                      tr: `Dosya: ${file.name}${v.originalCurrencyNote?.tr ? ' · ' + v.originalCurrencyNote.tr : ''}`,
-                      en: `File: ${file.name}${v.originalCurrencyNote?.en ? ' · ' + v.originalCurrencyNote.en : ''}`,
+                      tr: `Dosya: ${file.name}${v.sourceCurrency ? ' · ' + v.sourceCurrency : ''}`,
+                      en: `File: ${file.name}${v.sourceCurrency ? ' · ' + v.sourceCurrency : ''}`,
                     },
                     sourceCurrency: v.sourceCurrency,
                     ...window.__TERMS__.termsFromDecoded(v),
@@ -1699,7 +1738,7 @@
                       ? v.flags.map((f, fIdx) => ({
                           id: `${uid}-flag-${fIdx}`,
                           category: CANONICAL_CATEGORY_ORDER.includes(f.category) ? f.category : undefined,
-                          type: f.type === 'safe' ? 'safe' : 'risk',
+                          type: f.type === 'safe' || f.type === 'info' ? f.type : 'risk',
                           label: f.label || { tr: 'Ek Kalem', en: 'Additional Item' },
                           detail: f.detail || { tr: '', en: '' },
                           calcType: ['fixed', 'per_guest', 'service_pct', 'vat_pct'].includes(f.calcType) ? f.calcType : 'fixed',
@@ -2286,7 +2325,7 @@
           </div>
 
           <!-- Currency Toggle, Language Toggle & Reference Rate -->
-          <div class="flex items-center justify-between gap-3 border-t border-champagne-soft pt-2 lg:border-t-0 lg:pt-0 shrink-0">
+          <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-champagne-soft pt-2 lg:border-t-0 lg:pt-0">
             <label class="hidden items-center gap-1.5 text-xs text-stone xl:flex">
               <span x-text="t('refRateLabel')"></span>
               <input
@@ -2298,10 +2337,10 @@
                 class="w-20 rounded-lg border border-champagne-line bg-white px-2 py-1 text-right text-xs tabular-nums text-obsidian focus:border-champagne focus:outline-none"
               />
               <span>₺</span>
-              <span class="text-[11px]" x-text="'· ' + rateSourceText()"></span>
+              <span class="hidden text-[11px] 2xl:inline" x-text="'· ' + rateSourceText()"></span>
             </label>
 
-            <div class="flex items-center gap-2.5 sm:gap-3">
+            <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
               <span class="text-xs text-stone whitespace-nowrap">
                 <strong class="font-semibold text-obsidian tabular-nums" x-text="venues.length"></strong>
                 <span x-text="t('activeVenuesLabel')"></span>
@@ -2711,7 +2750,10 @@
                     <dl class="mt-5 divide-y divide-champagne-soft border-y border-champagne-soft text-sm">
                       <div class="flex items-center justify-between py-3">
                         <dt class="text-stone" x-text="t('baseFeeLabel')"></dt>
-                        <dd class="font-semibold text-obsidian tabular-nums" x-text="formatCurrency(venue.baseFeeEur)"></dd>
+                        <dd class="font-semibold text-obsidian tabular-nums">
+                          <span x-show="!completeness(venue).rentMissing" x-text="formatCurrency(venue.baseFeeEur)"></span>
+                          <span x-show="completeness(venue).rentMissing" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                        </dd>
                       </div>
 
                       <div class="flex items-center justify-between py-3">
@@ -2719,7 +2761,10 @@
                           <span x-text="t('fbPerPersonLabel')"></span>
                           <span class="text-xs text-stone/80 tabular-nums" x-text="`(${formatCurrency(venue.fbPerPersonEur)} × ${guestCount})`"></span>
                         </dt>
-                        <dd class="font-semibold text-obsidian tabular-nums" x-text="formatCurrency(calculateBreakdown(venue).fbSubtotalEur)"></dd>
+                        <dd class="font-semibold text-obsidian tabular-nums">
+                          <span x-show="!completeness(venue).foodMissing" x-text="formatCurrency(calculateBreakdown(venue).fbSubtotalEur)"></span>
+                          <span x-show="completeness(venue).foodMissing" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
+                        </dd>
                       </div>
 
                       <div class="flex items-center justify-between py-3">
@@ -2791,6 +2836,16 @@
                           <strong class="font-semibold text-obsidian" x-text="formatCurrency(calculateBreakdown(venue).effectivePerGuestEur)"></strong>
                         </span>
                       </div>
+                    </div>
+
+                    <!-- Missing-information warnings: the total only counts what the quote states -->
+                    <div
+                      x-show="completeness(venue).rentMissing || completeness(venue).foodMissing || completeness(venue).needsPriceCount > 0"
+                      class="mt-3 space-y-1 rounded-xl bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-800"
+                    >
+                      <p x-show="completeness(venue).rentMissing" x-text="'⚠ ' + t('warnRentMissing')"></p>
+                      <p x-show="completeness(venue).foodMissing" x-text="'⚠ ' + t('warnFoodMissing')"></p>
+                      <p x-show="completeness(venue).needsPriceCount > 0" x-text="'⚠ ' + completeness(venue).needsPriceCount + ' ' + t('warnNeedsPriceTail')"></p>
                     </div>
 
                     <!-- Quote Terms: minimum spend, deposit, cancellation, validity -->
@@ -2865,7 +2920,7 @@
                               <template x-for="flag in getVenueFlagsByCategory(venue, cat)" :key="flag.id">
                                 <li>
                                   <!-- Risk / Vendor Service Row with iOS Tactile Toggle -->
-                                  <template x-if="flag.type === 'risk'">
+                                  <template x-if="flag.type === 'risk' && !needsPrice(flag)">
                                     <div
                                       class="flex items-center gap-2 rounded-xl border px-3 py-2.5 transition-colors duration-200"
                                       :class="flag.active ? (flag.vendorCategory ? 'border-champagne-line bg-blush/75 text-obsidian' : 'border-[#FECDD3] bg-peony-bg/75 text-[#9F1239]') : 'border-champagne-soft bg-white/75 opacity-75'"
@@ -2925,6 +2980,66 @@
                                       >
                                         ×
                                       </button>
+                                    </div>
+                                  </template>
+
+                                  <!-- Required / excluded item with no stated price: ask the user -->
+                                  <template x-if="flag.type === 'risk' && needsPrice(flag)">
+                                    <div class="rounded-xl border border-dashed border-amber-300 bg-amber-50/70 px-3 py-2.5">
+                                      <div class="flex items-start justify-between gap-2">
+                                        <div class="min-w-0">
+                                          <div class="text-xs font-semibold leading-snug text-amber-900" x-text="flag.label[lang]"></div>
+                                          <p x-show="flag.detail[lang]" class="mt-0.5 text-[11px] leading-relaxed text-amber-900/80" x-text="flag.detail[lang]"></p>
+                                        </div>
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                          <span class="rounded-full bg-white/85 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800 whitespace-nowrap" x-text="'? ' + t('flagNeedsPriceLabel')"></span>
+                                          <button
+                                            type="button"
+                                            @click="removeFlag(venue.id, flag.id)"
+                                            :title="t('removeFlagLabel')"
+                                            :aria-label="t('removeFlagLabel')"
+                                            class="rounded-full p-1 text-amber-800/60 transition-colors hover:bg-white hover:text-peony"
+                                          >
+                                            ×
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <label class="mt-2 flex items-center gap-2 text-[11px] text-amber-900/80">
+                                        <span x-text="flag.calcType === 'per_guest' ? t('flagPricePerGuest') : t('flagPriceLabel')"></span>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          step="50"
+                                          :placeholder="currency === 'EUR' ? '€' : '₺'"
+                                          @change="setFlagPrice(venue.id, flag.id, $event)"
+                                          class="w-28 rounded-lg border border-amber-200 bg-white px-2 py-1 text-xs tabular-nums text-obsidian focus:border-champagne focus:outline-none"
+                                        />
+                                      </label>
+                                    </div>
+                                  </template>
+
+                                  <!-- Restriction / condition with no price impact -->
+                                  <template x-if="flag.type === 'info'">
+                                    <div class="flex items-start justify-between gap-2 rounded-xl border border-champagne-soft bg-white/75 px-3 py-2.5">
+                                      <div class="flex min-w-0 flex-1 items-start gap-2.5">
+                                        <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-champagne-soft text-[11px] font-bold text-stone">i</span>
+                                        <div class="min-w-0">
+                                          <div class="text-xs font-semibold leading-snug text-obsidian" x-text="flag.label[lang]"></div>
+                                          <p x-show="flag.detail[lang]" class="mt-0.5 text-[11px] leading-relaxed text-stone" x-text="flag.detail[lang]"></p>
+                                        </div>
+                                      </div>
+                                      <div class="flex items-center gap-1.5 shrink-0">
+                                        <span class="rounded-full bg-champagne-soft px-2.5 py-0.5 text-[11px] font-semibold text-stone whitespace-nowrap" x-text="t('flagInfoLabel')"></span>
+                                        <button
+                                          type="button"
+                                          @click="removeFlag(venue.id, flag.id)"
+                                          :title="t('removeFlagLabel')"
+                                          :aria-label="t('removeFlagLabel')"
+                                          class="rounded-full p-1 text-stone/60 transition-colors hover:bg-white hover:text-peony"
+                                        >
+                                          ×
+                                        </button>
+                                      </div>
                                     </div>
                                   </template>
 
@@ -3090,7 +3205,7 @@
                   <tr>
                     <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-semibold text-obsidian" x-text="t('rowTotal')"></th>
                     <template x-for="col in comparison().columns" :key="col.id">
-                      <td class="border-b border-l border-champagne-soft px-3 py-3 font-serif text-xl font-semibold text-obsidian" :class="col.best ? 'bg-emeraldSafe-bg' : ''" x-text="col.hasPrice ? formatCurrency(col.turnkeyEur) : '—'"></td>
+                      <td class="border-b border-l border-champagne-soft px-3 py-3 font-serif text-xl font-semibold text-obsidian" :class="col.best ? 'bg-emeraldSafe-bg' : ''" ><span x-text="col.hasPrice ? formatCurrency(col.turnkeyEur) : '—'"></span><div x-show="col.rentMissing || col.foodMissing || col.needsPriceCount > 0" class="mt-1 font-sans text-[11px] font-medium text-amber-800" x-text="'⚠ ' + t('tableIncomplete')"></div></td>
                     </template>
                   </tr>
                   <tr>
@@ -3108,13 +3223,13 @@
                   <tr>
                     <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('baseFeeLabel')"></th>
                     <template x-for="col in comparison().columns" :key="col.id">
-                      <td class="border-b border-l border-champagne-soft px-3 py-3 text-obsidian" x-text="formatCurrency(col.rentEur)"></td>
+                      <td class="border-b border-l border-champagne-soft px-3 py-3 text-obsidian"><span x-show="!col.rentMissing" x-text="formatCurrency(col.rentEur)"></span><span x-show="col.rentMissing" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span></td>
                     </template>
                   </tr>
                   <tr>
                     <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-medium text-stone" x-text="t('rowFood')"></th>
                     <template x-for="col in comparison().columns" :key="col.id">
-                      <td class="border-b border-l border-champagne-soft px-3 py-3 text-obsidian" x-text="formatCurrency(col.foodEur)"></td>
+                      <td class="border-b border-l border-champagne-soft px-3 py-3 text-obsidian"><span x-show="!col.foodMissing" x-text="formatCurrency(col.foodEur)"></span><span x-show="col.foodMissing" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span></td>
                     </template>
                   </tr>
                   <tr>
@@ -3162,6 +3277,7 @@
                           <span x-show="col.cells[cat].kind === 'amount'" class="font-medium text-peony" x-text="'+' + formatCurrency(col.cells[cat].amountEur)"></span>
                           <span x-show="col.cells[cat].kind === 'included'" class="font-medium text-emeraldSafe" x-text="'✓ ' + t('includedLabel')"></span>
                           <span x-show="col.cells[cat].kind === 'excluded'" class="text-stone" x-text="t('excludedLabel')"></span>
+                          <span x-show="col.cells[cat].kind === 'needs_price'" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('flagNeedsPriceLabel')"></span>
                           <span x-show="col.cells[cat].kind === 'missing'" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('cellMissing')"></span>
                         </td>
                       </template>
