@@ -157,6 +157,7 @@
       import * as terms from '/src/terms.js';
       import * as completeness from '/src/completeness.js';
       import * as flagedit from '/src/flagedit.js';
+      import * as view from '/src/viewmode.js';
 
       window.__CALC__ = calc;
       window.__PERSIST__ = persist;
@@ -169,6 +170,7 @@
       window.__TERMS__ = terms;
       window.__COMPLETE__ = completeness;
       window.__FLAGEDIT__ = flagedit;
+      window.__VIEW__ = view;
 
       window.Alpine = Alpine;
       Alpine.start();
@@ -241,6 +243,10 @@
           btnAddBlankVenue: '+ Boş Mekan Kartı Ekle',
           btnReset: 'Tümünü Temizle',
           categoriesNotStated: 'Bu teklifte belirtilmeyenler (eklemek için dokunun):',
+          tableGroupPrice: 'Fiyat',
+          tableGroupTerms: 'Teklif koşulları',
+          tableGroupExtras: 'Ek kalemler',
+          tableEditInCard: 'Kartta düzenle',
           flagNameEditLabel: 'Kalem adı',
           flagAmountEditLabel: 'Tutar',
           toastAmountInvalid: 'Geçerli bir tutar girin (yüzde en çok 100).',
@@ -443,6 +449,10 @@
           btnAddBlankVenue: '+ Add Blank Venue Card',
           btnReset: 'Clear All',
           categoriesNotStated: 'Not stated in this quote (tap to add):',
+          tableGroupPrice: 'Price',
+          tableGroupTerms: 'Quote terms',
+          tableGroupExtras: 'Extras',
+          tableEditInCard: 'Edit in card',
           flagNameEditLabel: 'Item name',
           flagAmountEditLabel: 'Amount',
           toastAmountInvalid: 'Enter a valid amount (percentages up to 100).',
@@ -676,7 +686,7 @@
           geminiKey: '',
           keyDraft: '',
           editingKey: false,
-          viewMode: 'cards',
+          viewMode: 'table',
           topNotes: [
             { key: 'datesNote', label: 'termsDates', edit: 'datesEditLabel' },
             { key: 'durationNote', label: 'termsDuration', edit: 'durationEditLabel' },
@@ -709,7 +719,7 @@
             } catch {
               // localStorage unavailable
             }
-            if (window.matchMedia('(max-width: 767px)').matches) this.viewMode = 'table';
+            this.viewMode = window.__VIEW__.loadViewMode(window.localStorage);
 
             let saveTimer = null;
             this.$watch(
@@ -795,6 +805,21 @@
             const min = Number(venue.minimumSpendEur) || 0;
             const total = this.calculateBreakdown(venue).turnkeyTotalEur;
             return min > 0 && total > 0 && total < min;
+          },
+
+          setViewMode(mode) {
+            this.viewMode = mode;
+            window.__VIEW__.saveViewMode(window.localStorage, mode);
+          },
+
+          openCard(venueId) {
+            const venue = this.venues.find((v) => v.id === venueId);
+            if (!venue) return;
+            this.setViewMode('cards');
+            venue.editing = true;
+            this.$nextTick(() => {
+              document.getElementById(`venue-card-${venueId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
           },
 
           showTable() {
@@ -2530,7 +2555,7 @@
               >
                 <button
                   type="button"
-                  @click="viewMode = 'cards'"
+                  @click="setViewMode('cards')"
                   :aria-pressed="viewMode === 'cards'"
                   :class="viewMode === 'cards' ? 'bg-obsidian text-pearl shadow-sm' : 'text-stone hover:text-obsidian'"
                   class="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 whitespace-nowrap"
@@ -2538,7 +2563,7 @@
                 ></button>
                 <button
                   type="button"
-                  @click="viewMode = 'table'"
+                  @click="setViewMode('table')"
                   :aria-pressed="viewMode === 'table'"
                   :class="viewMode === 'table' ? 'bg-obsidian text-pearl shadow-sm' : 'text-stone hover:text-obsidian'"
                   class="rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 whitespace-nowrap"
@@ -2558,11 +2583,12 @@
           <!-- Dynamic Venue Comparison Grid -->
           <div
             x-show="!showTable()"
-            class="mt-8 grid grid-cols-1 gap-7 items-stretch"
+            class="mt-8 grid grid-cols-1 gap-7 items-start"
             :class="venues.length >= 3 ? 'md:grid-cols-2 lg:grid-cols-3' : (venues.length === 2 ? 'lg:grid-cols-2' : 'max-w-2xl')"
           >
             <template x-for="venue in venues" :key="venue.id">
               <article
+                :id="'venue-card-' + venue.id"
                 class="flex flex-col justify-between overflow-hidden rounded-[24px] border bg-white shadow-card transition-all duration-200"
                 :class="isBestValue(venue) ? 'border-emeraldSafe/45 ring-1 ring-champagne/30' : 'border-champagne-soft'"
               >
@@ -3282,17 +3308,28 @@
                 <caption class="sr-only" x-text="t('tableCaption')"></caption>
                 <thead>
                   <tr>
-                    <th scope="col" class="sticky left-0 z-10 w-28 min-w-[7rem] border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone" x-text="t('tableItemHeader')"></th>
+                    <th scope="col" class="sticky left-0 z-10 w-28 min-w-[7rem] border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone sm:w-44 sm:min-w-[11rem]" x-text="t('tableItemHeader')"></th>
                     <template x-for="col in comparison().columns" :key="col.id">
                       <th scope="col" class="min-w-[9.5rem] border-b border-l border-champagne-soft px-3 py-3 text-left align-top" :class="col.best ? 'bg-emeraldSafe-bg' : 'bg-white'">
                         <div class="font-serif text-lg font-semibold leading-tight text-obsidian" x-text="displayVenueName(col.venue)"></div>
                         <div class="mt-0.5 text-[11px] font-normal text-stone" x-text="col.venue.region[lang]"></div>
                         <div x-show="col.best" class="mt-1.5 text-[11px] font-semibold text-emeraldSafe" x-text="t('bestValueBadge')"></div>
+                        <button
+                          type="button"
+                          @click="openCard(col.id)"
+                          class="mt-2 rounded-full border border-champagne-line bg-white px-2.5 py-0.5 text-[11px] font-semibold text-obsidian transition-colors hover:border-champagne hover:bg-blush"
+                          x-text="t('tableEditInCard')"
+                        ></button>
                       </th>
                     </template>
                   </tr>
                 </thead>
                 <tbody class="tabular-nums">
+                  <tr>
+                    <th scope="colgroup" :colspan="comparison().columns.length + 1" class="border-b border-champagne-soft bg-blush/70 px-3 py-2 text-left">
+                      <div class="sticky left-0 w-fit text-[11px] font-semibold uppercase tracking-wider text-stone" x-text="t('tableGroupPrice')"></div>
+                    </th>
+                  </tr>
                   <tr>
                     <th scope="row" class="sticky left-0 z-10 border-b border-champagne-soft bg-pearl px-3 py-3 text-left text-xs font-semibold text-obsidian" x-text="t('rowTotal')"></th>
                     <template x-for="col in comparison().columns" :key="col.id">
@@ -3328,6 +3365,11 @@
                     <template x-for="col in comparison().columns" :key="col.id">
                       <td class="border-b border-l border-champagne-soft px-3 py-3 text-obsidian"><span x-show="!col.foodMissing" x-text="formatCurrency(col.foodEur)"></span><span x-show="col.foodMissing" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span></td>
                     </template>
+                  </tr>
+                  <tr>
+                    <th scope="colgroup" :colspan="comparison().columns.length + 1" class="border-b border-champagne-soft bg-blush/70 px-3 py-2 text-left">
+                      <div class="sticky left-0 w-fit text-[11px] font-semibold uppercase tracking-wider text-stone" x-text="t('tableGroupTerms')"></div>
+                    </th>
                   </tr>
                   <template x-for="row in topNotes" :key="row.key">
                     <tr>
@@ -3369,6 +3411,11 @@
                         <span x-show="!col.validUntil" class="inline-block rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800" x-text="'? ' + t('termsNotStated')"></span>
                       </td>
                     </template>
+                  </tr>
+                  <tr x-show="comparison().categories.length > 0">
+                    <th scope="colgroup" :colspan="comparison().columns.length + 1" class="border-b border-champagne-soft bg-blush/70 px-3 py-2 text-left">
+                      <div class="sticky left-0 w-fit text-[11px] font-semibold uppercase tracking-wider text-stone" x-text="t('tableGroupExtras')"></div>
+                    </th>
                   </tr>
                   <template x-for="cat in comparison().categories" :key="cat">
                     <tr>
