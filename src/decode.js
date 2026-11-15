@@ -63,15 +63,21 @@ const RESPONSE_SCHEMA = {
       },
       required: ['tr', 'en'],
     },
-    baseFeeEur: {
-      type: 'NUMBER',
+    currency: {
+      type: 'STRING',
+      enum: ['EUR', 'TRY', 'USD', 'GBP', 'OTHER'],
       description:
-        'For venues: fixed venue rental fee normalized to EUR. For vendor_addon: fixed service package total normalized to EUR (use 0 if only per-person pricing exists). Convert TRY using 1 EUR = 38.5 TRY, USD using 1 EUR = 1.08 USD, GBP using 1 EUR = 0.85 GBP.',
+        "The currency the document's prices are written in: 'EUR' (€), 'TRY' (₺ / TL), 'USD' ($), 'GBP' (£), or 'OTHER' for any other currency. Never convert amounts.",
     },
-    fbPerPersonEur: {
+    baseFee: {
       type: 'NUMBER',
       description:
-        'For venues: per-guest food & beverage price normalized to EUR. For vendor_addon: any per-guest service cost normalized to EUR (e.g., external catering per-guest menu cost; 0 if purely fixed fee).',
+        "For venues: fixed venue rental fee in the document's ORIGINAL currency (no conversion). For vendor_addon: fixed service package total in the original currency (use 0 if only per-person pricing exists).",
+    },
+    fbPerPerson: {
+      type: 'NUMBER',
+      description:
+        "For venues: per-guest food & beverage price in the document's ORIGINAL currency (no conversion). For vendor_addon: any per-guest service cost in the original currency (e.g., external catering per-guest menu cost; 0 if purely fixed fee).",
     },
     flags: {
       type: 'ARRAY',
@@ -112,7 +118,7 @@ const RESPONSE_SCHEMA = {
           },
           amount: {
             type: 'NUMBER',
-            description: 'Numeric value in EUR (for fixed or per_guest) or percentage number like 10 or 20 (for service_pct or vat_pct). 0 for safe items.',
+            description: "Numeric value in the document's ORIGINAL currency (for fixed or per_guest, no conversion) or percentage number like 10 or 20 (for service_pct or vat_pct). 0 for safe items.",
           },
           active: {
             type: 'BOOLEAN',
@@ -133,8 +139,9 @@ const RESPONSE_SCHEMA = {
     'venueType',
     'capacityLabel',
     'originalCurrencyNote',
-    'baseFeeEur',
-    'fbPerPersonEur',
+    'currency',
+    'baseFee',
+    'fbPerPerson',
     'flags',
   ],
 };
@@ -151,17 +158,15 @@ Rules:
 2. Name Detection:
    - Put the exact venue name (for 'venue') or vendor/company name (for 'vendor_addon') in 'name' and set nameFound = true.
    - If NO name is visible (e.g., a cropped WhatsApp price snippet), set nameFound = false and 'name' = "" — NEVER invent or guess a name.
-3. Currency Normalization to EUR:
-   - EUR: keep as-is
-   - TRY (₺ / TL): divide by 38.50
-   - USD ($): divide by 1.08
-   - GBP (£): divide by 0.85
+3. Currency:
+   - Detect the currency the document is written in and set 'currency' to EUR (€), TRY (₺ / TL), USD ($), GBP (£), or OTHER.
+   - Return ALL monetary amounts (baseFee, fbPerPerson and fixed / per_guest flag amounts) in that ORIGINAL currency exactly as written. Do NOT convert or round between currencies; the application converts.
 4. Pricing & Category Alignment Extraction:
    - For EVERY item in flags[], set 'category' accurately to one of: 'tax', 'catering', 'music', 'floral', 'boat', 'photo', or 'other'.
    - SERVICE CHARGE RULE: a percentage service charge/fee (e.g. "servis %10", "service charge 12%") MUST use calcType="service_pct" (category="other"), NEVER "vat_pct". Only taxes use "vat_pct".
-   - For 'venue': put fixed venue rental in baseFeeEur, per-guest menu price in fbPerPersonEur. Put hidden costs, excluded VAT/KDV/IVA (category="tax", calcType="vat_pct"), service fees, SIAE/music (category="music"), external catering requirements (category="catering"), etc. in flags[].
+   - For 'venue': put fixed venue rental in baseFee, per-guest menu price in fbPerPerson. Put hidden costs, excluded VAT/KDV/IVA (category="tax", calcType="vat_pct"), service fees, SIAE/music (category="music"), external catering requirements (category="catering"), etc. in flags[].
    - IMPORTANT TAX RULE: If a venue quote explicitly states that VAT/KDV/IVA or taxes ARE INCLUDED (e.g., "KDV dahil", "VAT included", "IVA inclusa"), ALWAYS include a flag with category="tax", type="safe", calcType="fixed", amount=0, active=false (e.g., label.tr="KDV / Vergi Dahil", label.en="VAT / Taxes Included") so it aligns side-by-side with quotes where tax is excluded!
-   - For 'vendor_addon': put fixed service total in baseFeeEur and any per-guest service cost in fbPerPersonEur. ALSO populate flags[] with the main service package line item (category matching vendorCategory, type="risk", active=true, calcType="fixed" or "per_guest", exact EUR amount) plus any separate setup/delivery fees and any excluded VAT/KDV/IVA (category="tax", type="risk", calcType="vat_pct", active=true) so it can be cleanly injected into a venue card as itemized rows. Do NOT double-count the same service fee across multiple flags.
+   - For 'vendor_addon': put fixed service total in baseFee and any per-guest service cost in fbPerPerson. ALSO populate flags[] with the main service package line item (category matching vendorCategory, type="risk", active=true, calcType="fixed" or "per_guest", exact amount in the original currency) plus any separate setup/delivery fees and any excluded VAT/KDV/IVA (category="tax", type="risk", calcType="vat_pct", active=true) so it can be cleanly injected into a venue card as itemized rows. Do NOT double-count the same service fee across multiple flags.
 5. Return clean, natural Turkish AND English labels and explanations.`;
 
 export class DecodeError extends Error {
