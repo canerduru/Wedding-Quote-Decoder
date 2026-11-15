@@ -166,3 +166,34 @@ test('sema teklifteki toplami ister, prompt ayri listelenen ucretleri birlestirm
   assert.match(prompt, /separately listed/i);
   assert.match(prompt, /do not (put|add|write) .*price (not|is not) stated/i);
 });
+
+test('metin modu: gorsel yerine metin gonderilir, inlineData yok', async () => {
+  const h = harness([ok()]);
+  await decodeQuote({ apiKey: KEY, fileName: 'Yapıştırılan metin 1', text: 'Villa Flori\nKira 3.000 EUR KDV dahil', sleep: h.args.sleep, fetchImpl: h.args.fetchImpl });
+  const parts = h.calls[0].body.contents[0].parts;
+  assert.ok(!parts.some((p) => p.inlineData));
+  assert.ok(parts[0].text.includes('Villa Flori'));
+  assert.ok(parts[0].text.includes('Kira 3.000 EUR'));
+  const prompt = parts[parts.length - 1].text;
+  assert.match(prompt, /pasted quote text/);
+  assert.ok(!/uploaded quote image or PDF/.test(prompt));
+  assert.match(prompt, /source: "Yapıştırılan metin 1"/);
+});
+
+test('metin modu: kullanicinin yazdigi mekan adi isteme eklenir, bos ise eklenmez', async () => {
+  const h = harness([ok(), ok()]);
+  await decodeQuote({ apiKey: KEY, fileName: 'a', text: 'x'.repeat(30), nameHint: 'Villa "Flori"\nSuites', sleep: h.args.sleep, fetchImpl: h.args.fetchImpl });
+  const withHint = h.calls[0].body.contents[0].parts.at(-1).text;
+  assert.match(withHint, /name is: "Villa Flori Suites"/);
+  assert.match(withHint, /nameFound = true/);
+  await decodeQuote({ apiKey: KEY, fileName: 'a', text: 'x'.repeat(30), sleep: h.args.sleep, fetchImpl: h.args.fetchImpl });
+  assert.ok(!/The user states the name is/.test(h.calls[1].body.contents[0].parts.at(-1).text));
+});
+
+test('gorsel modu degismez: inlineData ve dosya adi', async () => {
+  const h = harness([ok()]);
+  await decodeQuote(h.args);
+  const parts = h.calls[0].body.contents[0].parts;
+  assert.ok(parts[0].inlineData);
+  assert.match(parts[1].text, /uploaded quote image or PDF \(filename: "teklif\.png"\)/);
+});

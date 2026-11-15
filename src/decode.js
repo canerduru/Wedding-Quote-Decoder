@@ -216,7 +216,7 @@ const RESPONSE_SCHEMA = {
   ],
 };
 
-const buildPrompt = (safeName) => `You are an elite luxury wedding financial auditor. Carefully read this uploaded quote image or PDF (filename: "${safeName}").
+const buildPrompt = (safeName, { isText = false, nameHint = '' } = {}) => `You are an elite luxury wedding financial auditor. Carefully read ${isText ? 'the pasted quote text' : 'this uploaded quote image or PDF'} (${isText ? 'source' : 'filename'}: "${safeName}").
 First, classify whether this document is a primary wedding venue/hotel/estate proposal ('venue') OR a standalone external vendor/service add-on quote ('vendor_addon') such as a florist, boat/water taxi charter, external catering company, DJ/band/sound/lighting, tent/production, or photography/video.
 
 Rules:
@@ -227,7 +227,7 @@ Rules:
    - If docCategory is 'vendor_addon' and the document explicitly mentions a target wedding venue/hotel name (e.g., "Delivery to Villa Balbiano" or "Çırağan Sarayı kurulumu"), put that venue name in targetVenueHint; otherwise set targetVenueHint = "".
 2. Name Detection:
    - Put the exact venue name (for 'venue') or vendor/company name (for 'vendor_addon') in 'name' and set nameFound = true.
-   - If NO name is visible (e.g., a cropped WhatsApp price snippet), set nameFound = false and 'name' = "" — NEVER invent or guess a name.
+${nameHint ? `   - The user states the name is: "${nameHint}". Use exactly that as 'name' and set nameFound = true.\n` : ''}   - If NO name is visible (e.g., a cropped WhatsApp price snippet), set nameFound = false and 'name' = "" — NEVER invent or guess a name.
 3. Currency:
    - Detect the currency the document is written in and set 'currency' to EUR (€), TRY (₺ / TL), USD ($), GBP (£), or OTHER.
    - Return ALL monetary amounts (baseFee, fbPerPerson and fixed / per_guest flag amounts) in that ORIGINAL currency exactly as written. Do NOT convert or round between currencies; the application converts.
@@ -274,12 +274,17 @@ export async function decodeQuote({
   fileName,
   mimeType,
   base64Data,
+  text,
+  nameHint,
   fetchImpl = (...args) => fetch(...args),
   sleep = defaultSleep,
 }) {
   const safeName = String(fileName || 'quote').replace(/"/g, '').replace(/\s+/g, ' ').trim().slice(0, 120);
+  const isText = typeof text === 'string' && text.length > 0;
+  const hint = String(nameHint || '').replace(/["\r\n]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+  const documentPart = isText ? { text: `PASTED QUOTE TEXT:\n\"\"\"\n${text}\n\"\"\"` } : { inlineData: { mimeType, data: base64Data } };
   const body = JSON.stringify({
-    contents: [{ parts: [{ inlineData: { mimeType, data: base64Data } }, { text: buildPrompt(safeName) }] }],
+    contents: [{ parts: [documentPart, { text: buildPrompt(safeName, { isText, nameHint: hint }) }] }],
     generationConfig: { responseMimeType: 'application/json', responseSchema: RESPONSE_SCHEMA },
   });
 
