@@ -8,6 +8,7 @@ export const emptyTerms = () => ({
   durationNote: { tr: '', en: '' },
   datesNote: { tr: '', en: '' },
   guestsNote: { tr: '', en: '' },
+  statedTotalEur: 0,
   validUntil: '',
 });
 
@@ -26,6 +27,7 @@ export function termsFromDecoded(raw) {
     durationNote: biText(raw?.durationNote),
     datesNote: biText(raw?.datesNote),
     guestsNote: biText(raw?.guestsNote),
+    statedTotalEur: Number(raw?.statedTotalEur) > 0 ? Number(raw.statedTotalEur) : 0,
     validUntil: validIsoDate(raw?.validUntil),
   };
 }

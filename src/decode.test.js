@@ -154,3 +154,15 @@ test('sema sure, tarih ve davetli notlarini ister', async () => {
   assert.match(prompt, /datesNote/);
   assert.match(prompt, /guestsNote/);
 });
+
+test('sema teklifteki toplami ister, prompt ayri listelenen ucretleri birlestirmeyi yasaklar', async () => {
+  const h = harness([ok()]);
+  await decodeQuote(h.args);
+  const schema = h.calls[0].body.generationConfig.responseSchema;
+  assert.equal(schema.properties.statedTotal.type, 'NUMBER');
+  assert.ok(schema.required.includes('statedTotal'));
+  const prompt = h.calls[0].body.contents[0].parts[1].text;
+  assert.match(prompt, /statedTotal/);
+  assert.match(prompt, /separately listed/i);
+  assert.match(prompt, /do not (put|add|write) .*price (not|is not) stated/i);
+});
