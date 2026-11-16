@@ -311,6 +311,12 @@
           densityLarge: 'Büyük',
           densityMedium: 'Orta',
           densitySmall: 'Küçük',
+          cardsExpandAll: 'Detayları aç',
+          cardsCollapseAll: 'Detayları kapat',
+          cardExpand: 'Detayı aç',
+          cardCollapse: 'Kartı kapat',
+          dragHandleLabel: 'Sıralamak için sürükle',
+          includedCountLabel: 'özellik dahil',
           tableGroupPrice: 'Fiyat',
           tableGroupTerms: 'Teklif koşulları',
           tableGroupExtras: 'Ek kalemler',
@@ -567,6 +573,12 @@
           densityLarge: 'Large',
           densityMedium: 'Medium',
           densitySmall: 'Small',
+          cardsExpandAll: 'Expand details',
+          cardsCollapseAll: 'Collapse details',
+          cardExpand: 'Expand details',
+          cardCollapse: 'Collapse card',
+          dragHandleLabel: 'Drag to reorder',
+          includedCountLabel: 'included',
           tableGroupPrice: 'Price',
           tableGroupTerms: 'Quote terms',
           tableGroupExtras: 'Extras',
@@ -817,6 +829,8 @@
           editingKey: false,
           viewMode: 'table',
           density: 'large',
+          cardsOpen: false,
+          openCards: {},
           topNotes: [
             { key: 'datesNote', label: 'termsDates', edit: 'datesEditLabel' },
             { key: 'durationNote', label: 'termsDuration', edit: 'durationEditLabel' },
@@ -851,6 +865,7 @@
             }
             this.viewMode = window.__VIEW__.loadViewMode(window.localStorage);
             this.density = window.__VIEW__.loadDensity(window.localStorage);
+            this.cardsOpen = window.__VIEW__.loadCardsOpen(window.localStorage);
             if (this.venues.length > 0) {
               setTimeout(() => document.getElementById('comparison-section')?.scrollIntoView({ block: 'start' }), 500);
             }
@@ -949,13 +964,68 @@
           },
 
           gridStyle() {
+            if (this.allCollapsed()) return window.__VIEW__.compactGridStyle();
             return window.__VIEW__.gridStyle(this.venues.length, this.density);
+          },
+
+          isCardOpen(venue) {
+            if (this.venues.length < 2) return true;
+            return this.openCards[venue.id] ?? this.cardsOpen;
+          },
+
+          allCollapsed() {
+            return this.venues.length >= 2 && !this.venues.some((venue) => this.isCardOpen(venue));
+          },
+
+          canReorder() {
+            return this.viewMode === 'cards' && this.allCollapsed();
+          },
+
+          toggleCard(venue) {
+            this.openCards = { ...this.openCards, [venue.id]: !this.isCardOpen(venue) };
+          },
+
+          toggleAllCards() {
+            this.cardsOpen = !this.cardsOpen;
+            this.openCards = {};
+            window.__VIEW__.saveCardsOpen(window.localStorage, this.cardsOpen);
+          },
+
+          cardSummaryOf(venue) {
+            return window.__CARDSUM__.cardSummary(venue, this.guestCount);
+          },
+
+          reorderVenue(from, to) {
+            this.venues = window.__REORDER__.moveIndex(this.venues, from, to);
+          },
+
+          initSortable(el) {
+            if (!window.Sortable) return;
+            const sortable = window.Sortable.create(el, {
+              draggable: 'article',
+              handle: '[data-drag-handle]',
+              animation: 150,
+              forceFallback: true,
+              disabled: !this.canReorder(),
+              onEnd: (evt) => {
+                const { item, from, oldDraggableIndex, newDraggableIndex } = evt;
+                from.removeChild(item);
+                const articles = [...from.children].filter((node) => node.tagName === 'ARTICLE');
+                from.insertBefore(item, articles[oldDraggableIndex] || null);
+                this.reorderVenue(oldDraggableIndex, newDraggableIndex);
+              },
+            });
+            this.$watch(
+              () => this.canReorder(),
+              (enabled) => sortable.option('disabled', !enabled)
+            );
           },
 
           openCard(venueId) {
             const venue = this.venues.find((v) => v.id === venueId);
             if (!venue) return;
             this.setViewMode('cards');
+            this.openCards = { ...this.openCards, [venueId]: true };
             venue.editing = true;
             this.$nextTick(() => {
               document.getElementById(`venue-card-${venueId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
