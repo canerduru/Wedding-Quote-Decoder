@@ -43,11 +43,19 @@ test('kira + yemek + kategori hucreleri = toplam', () => {
   assert.ok(Math.abs(col.rentEur + col.foodEur + sum - col.turnkeyEur) < 1e-6);
 });
 
-test('en avantajli ve fark: bos kart sayilmaz', () => {
-  const { columns } = build([venue('A', 5000, 0), venue('B', 0, 0), venue('C', 6000, 0)]);
+test('en dusuk ve fark: bos kart sayilmaz, eksiksiz mekanlar karsilastirilir', () => {
+  const { columns } = build([venue('A', 500, 50), venue('B', 0, 0), venue('C', 1500, 50)]);
   assert.deepEqual(columns.map((c) => c.best), [true, false, false]);
   assert.deepEqual(columns.map((c) => c.deltaEur), [0, 0, 1000]);
+  assert.deepEqual(columns.map((c) => c.complete), [true, false, true]);
   assert.equal(columns[1].hasPrice, false);
+});
+
+test('eksikli ucuz mekan en dusuk rozetini engeller', () => {
+  const { columns } = build([venue('A', 500, 50), venue('B', 2000, 0)]);
+  assert.deepEqual(columns.map((c) => c.best), [false, false]);
+  assert.deepEqual(columns.map((c) => c.deltaEur), [0, 0]);
+  assert.deepEqual(columns.map((c) => c.complete), [true, false]);
 });
 
 test('kolon kimligi ve bos liste', () => {

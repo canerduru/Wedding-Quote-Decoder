@@ -1,12 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  calculateBreakdown,
-  getFlagAmountEur,
-  getLowestTotalEur,
-  getDeltaFromLowest,
-  isBestValue,
-} from './calc.js';
+import { calculateBreakdown, getFlagAmountEur } from './calc.js';
 
 const GUESTS = 100;
 
@@ -69,28 +63,4 @@ test('H2: kalem tutari gosterimi toplamla tutarli', () => {
 test('pasif servis bedeli toplama girmez', () => {
   const v = venue(10000, 0, [risk('service_pct', 10, { active: false }), risk('vat_pct', 20)]);
   assert.equal(calculateBreakdown(v, GUESTS).turnkeyTotalEur, 12000);
-});
-
-test('H3: toplami 0 olan kart en avantajli sayilmaz ve en dusuk toplami bozmaz', () => {
-  const real1 = venue(5000, 0);
-  const empty = venue(0, 0);
-  const real2 = venue(6000, 0);
-  const all = [real1, empty, real2];
-  assert.equal(getLowestTotalEur(all, GUESTS), 5000);
-  assert.equal(isBestValue(real1, all, GUESTS), true);
-  assert.equal(isBestValue(empty, all, GUESTS), false);
-  assert.equal(isBestValue(real2, all, GUESTS), false);
-  assert.equal(getDeltaFromLowest(empty, all, GUESTS), 0);
-  assert.equal(getDeltaFromLowest(real2, all, GUESTS), 1000);
-});
-
-test('H3: fiyatli tek kart varsa kimse en avantajli degil', () => {
-  const real = venue(5000, 0);
-  const empty = venue(0, 0);
-  assert.equal(isBestValue(real, [real, empty], GUESTS), false);
-  assert.equal(getDeltaFromLowest(real, [real, empty], GUESTS), 0);
-});
-
-test('hic kart yokken en dusuk toplam 0', () => {
-  assert.equal(getLowestTotalEur([], GUESTS), 0);
 });
