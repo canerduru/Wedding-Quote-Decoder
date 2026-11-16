@@ -31,18 +31,19 @@ kapalıyken kullanıcı kartların sırasını sürükleyip bırakarak değişti
 
 ### Açık kart
 
-- Özet başlık aynen kalır, altına şimdiki gövde açılır: kira, yemek, ek ücretler,
-  koşullar, bayraklar, düzenleme paneli, birleştirme, çakışmalar.
-- Fotoğraf yenile, kapak değiştir, sil gibi kapak kontrolleri açık kartta görünür.
-- Açık kartlar şimdiki geniş ızgarada (`density` ayarına uyar), kapalılar dar ızgarada
-  durur. Karışık durumda sayfa iki bölüm olarak akar: önce açık kartlar, sonra
-  kapalılar. Kartlar yerinde büyümez.
+- Açık kart bugünkü kartın aynısıdır: kapak, başlık, kira, yemek, ek ücretler, koşullar,
+  bayraklar, düzenleme, birleştirme, çakışmalar. Kapağın sağ üstüne bir "kapat" oku eklenir.
+- Kapalıyken özet blok görünür, açılınca yerini bugünkü kart alır; kart aşağı doğru uzar.
+- Izgara tek parçadır ve `venues` sırasını korur. Tüm kartlar kapalıyken dar ızgara
+  (`minmax(230px, 1fr)`, `auto-fill`) kullanılır; en az bir kart açıksa mevcut geniş ızgara
+  (`density` ayarına uyar) kullanılır ve kapalı kartlar o ızgarada tek sütun kaplar.
+- Kart boyutu (density) düğmeleri sadece en az bir kart açıkken görünür.
 
 ### Genel buton
 
 - Kart başlığının yanında tek buton: "Detayları aç" / "Detayları kapat".
-- `cardsOpen` (genel) ve `openCards` (kart başına istisna kümesi) iki durum.
-  Bir kart açıksa: `cardsOpen || openCards.has(id)`.
+- `cardsOpen` (genel) ve `openCards` (kart başına istisna, id -> boolean) iki durum.
+  Bir kart açık mı: `openCards[id] ?? cardsOpen`. Tek mekan varken kart her zaman açıktır.
 - Genel butona basınca `openCards` sıfırlanır ve `cardsOpen` tersine döner.
 - Kapalıyken bir kartın okuna basınca sadece o kart açılır.
 - Varsayılan: kapalı. `cardsOpen` `localStorage` anahtarı `wqd:cards-open` ile
@@ -68,9 +69,11 @@ kapalıyken kullanıcı kartların sırasını sürükleyip bırakarak değişti
 
 | Dosya | Değişiklik |
 |---|---|
-| `src/reorder.js` (yeni) | `moveItem(list, fromId, toId)` (yeni dizi döner, aynı/yok id'de aynı sırayı döner), `includedCount(venue)` |
+| `src/reorder.js` (yeni) | `moveIndex(list, from, to)` (yeni dizi döner, aralık dışı ya da aynı indekste aynı diziyi döner) |
 | `src/reorder.test.js` (yeni) | birim testler |
-| `src/viewmode.js` | `loadCardsOpen/saveCardsOpen`, `compactGridStyle()` |
+| `src/cardsummary.js` (yeni) | `cardSummary(venue, guestCount)` -> `{ totalEur, perGuestEur, included, gaps }` |
+| `src/cardsummary.test.js` (yeni) | birim testler |
+| `src/viewmode.js` | `CARDS_OPEN_KEY`, `loadCardsOpen/saveCardsOpen`, `compactGridStyle()` |
 | `src/viewmode.test.js` | yeni fonksiyonların testleri |
 | `package.json` | `sortablejs` bağımlılığı (sabit sürüm) |
 | `index.html` | özet başlık, açılır gövde, genel buton, Sortable bağlantısı, TR/EN metinler |
@@ -94,9 +97,10 @@ Yeni i18n anahtarları (TR/EN): `cardsExpandAll`, `cardsCollapseAll`, `cardExpan
 ## Test planı
 
 Birim (node --test):
-- `moveItem`: başa, sona, ortaya taşıma; aynı id; bilinmeyen id; yeni dizi döner,
-  girdi değişmez.
-- `includedCount`: sadece `safe` sayılır, `info` ve `risk` sayılmaz, bayraksız mekan 0.
+- `moveIndex`: başa, sona, ortaya taşıma; aynı indeks; aralık dışı indeks; yeni dizi
+  döner, girdi değişmez.
+- `cardSummary`: sadece `safe` sayılır, `info` ve `risk` sayılmaz; toplam, kişi başı ve
+  eksik sayısı doğru; boş mekan 0 toplam ve 2 eksik.
 - `loadCardsOpen/saveCardsOpen`: varsayılan false, bozuk değer, engelli storage.
 
 Tarayıcı (yerleşik tarayıcı, 1200 px ve 375 px):
