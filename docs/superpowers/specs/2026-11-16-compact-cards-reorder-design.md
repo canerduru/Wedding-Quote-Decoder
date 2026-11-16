@@ -78,10 +78,10 @@ kapalıyken kullanıcı kartların sırasını sürükleyip bırakarak değişti
 | `src/cardsummary.test.js` (yeni) | birim testler |
 | `src/viewmode.js` | `CARDS_OPEN_KEY`, `loadCardsOpen/saveCardsOpen`, `compactGridStyle()` |
 | `src/viewmode.test.js` | yeni fonksiyonların testleri |
-| `index.html` | özet başlık, açılır gövde, genel buton, Sortable bağlantısı, TR/EN metinler |
+| `index.html` | özet başlık, açılır gövde, genel buton, sürükleme durumu ve metotları, TR/EN metinler |
 
 `index.html` içinde yeni durum ve metotlar: `cardsOpen`, `openCards`, `isCardOpen(venue)`,
-`toggleCard(venue)`, `toggleAllCards()`, `canReorder()`, `initSortable(el)`.
+`toggleCard(venue)`, `toggleAllCards()`, `canReorder()`, `startDrag(event, venue)`, `dragCardStyle`, `dragCardClass`.
 
 Yeni i18n anahtarları (TR/EN): `cardsExpandAll`, `cardsCollapseAll`, `cardExpand`,
 `cardCollapse`, `dragHandleLabel`, `includedCountLabel` (ör. "{n} özellik dahil").
