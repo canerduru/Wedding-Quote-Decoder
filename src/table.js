@@ -1,5 +1,6 @@
-import { calculateBreakdown, getDeltaFromLowest, getFlagAmountEur, isBestValue } from './calc.js';
+import { calculateBreakdown, getFlagAmountEur } from './calc.js';
 import { completeness, needsPrice } from './completeness.js';
+import { lowestStanding } from './lowest.js';
 
 function cellFor(venue, category, categoryOf, guestCount) {
   const flags = (venue.flags || []).filter((f) => f.type !== 'info' && categoryOf(f) === category);
@@ -14,7 +15,8 @@ function cellFor(venue, category, categoryOf, guestCount) {
 }
 
 export function buildComparison({ venues, guestCount, categories, categoryOf }) {
-  const columns = venues.map((venue) => {
+  const standing = lowestStanding(venues, guestCount);
+  const columns = venues.map((venue, i) => {
     const b = calculateBreakdown(venue, guestCount);
     const gaps = completeness(venue);
     return {
@@ -24,8 +26,9 @@ export function buildComparison({ venues, guestCount, categories, categoryOf }) 
       foodEur: b.fbSubtotalEur,
       turnkeyEur: b.turnkeyTotalEur,
       perGuestEur: b.effectivePerGuestEur,
-      deltaEur: getDeltaFromLowest(venue, venues, guestCount),
-      best: isBestValue(venue, venues, guestCount),
+      deltaEur: standing[i].deltaEur,
+      best: standing[i].best,
+      complete: standing[i].complete,
       hasPrice: b.turnkeyTotalEur > 0,
       ...gaps,
       minimumSpendEur: Number(venue.minimumSpendEur) || 0,

@@ -82,23 +82,3 @@ export function getFlagAmountEur(venue, flag, guestCount) {
   if (flag.calcType === 'vat_pct') return (p.vatBaseEur * num(flag.amount)) / 100;
   return 0;
 }
-
-const pricedTotals = (venues, guestCount) =>
-  venues.map((v) => calculateBreakdown(v, guestCount).turnkeyTotalEur).filter((total) => total > 0);
-
-export function getLowestTotalEur(venues, guestCount) {
-  const totals = pricedTotals(venues, guestCount);
-  return totals.length ? Math.min(...totals) : 0;
-}
-
-export function getDeltaFromLowest(venue, venues, guestCount) {
-  const total = calculateBreakdown(venue, guestCount).turnkeyTotalEur;
-  if (total <= 0) return 0;
-  return total - getLowestTotalEur(venues, guestCount);
-}
-
-export function isBestValue(venue, venues, guestCount) {
-  if (pricedTotals(venues, guestCount).length < 2) return false;
-  const total = calculateBreakdown(venue, guestCount).turnkeyTotalEur;
-  return total > 0 && Math.round(getDeltaFromLowest(venue, venues, guestCount)) === 0;
-}
