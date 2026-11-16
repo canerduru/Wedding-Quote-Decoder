@@ -61,3 +61,25 @@ export function gridStyle(venueCount, density) {
   }
   return style;
 }
+
+export const CARDS_OPEN_KEY = 'wqd:cards-open';
+
+export function loadCardsOpen(storage) {
+  try {
+    return storage?.getItem(CARDS_OPEN_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function saveCardsOpen(storage, open) {
+  try {
+    storage?.setItem(CARDS_OPEN_KEY, open ? 'true' : 'false');
+  } catch {
+    // storage blocked: keep the choice in memory only
+  }
+}
+
+export function compactGridStyle() {
+  return { gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 230px), 1fr))' };
+}

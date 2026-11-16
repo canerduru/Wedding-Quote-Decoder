@@ -11,6 +11,10 @@ import {
   saveDensity,
   densityZoom,
   gridStyle,
+  CARDS_OPEN_KEY,
+  loadCardsOpen,
+  saveCardsOpen,
+  compactGridStyle,
 } from './viewmode.js';
 
 const fakeStorage = (initial = {}) => {
@@ -106,4 +110,23 @@ test('gridStyle: kucuk boyutta minimum kart genisligi daha dar', () => {
   const min = (d) => Number(gridStyle(3, d).gridTemplateColumns.match(/(\d+)px/)[1]);
   assert.ok(min('small') < min('medium') && min('medium') < min('large'));
   assert.equal(min('bilinmeyen'), min('large'));
+});
+
+test('cards-open: varsayilan kapali, gidis-donus, bozuk deger ve engelli depo kapali sayilir', () => {
+  assert.equal(loadCardsOpen(fakeStorage()), false);
+  const store = fakeStorage();
+  saveCardsOpen(store, true);
+  assert.equal(store.data[CARDS_OPEN_KEY], 'true');
+  assert.equal(loadCardsOpen(store), true);
+  saveCardsOpen(store, false);
+  assert.equal(loadCardsOpen(store), false);
+  assert.equal(loadCardsOpen(fakeStorage({ [CARDS_OPEN_KEY]: 'garbage' })), false);
+  assert.equal(loadCardsOpen({ getItem() { throw new Error('blocked'); } }), false);
+  assert.doesNotThrow(() => saveCardsOpen({ setItem() { throw new Error('blocked'); } }, true));
+});
+
+test('compactGridStyle: dar sutunlu sabit izgara, zoom yok', () => {
+  const style = compactGridStyle();
+  assert.equal(style.gridTemplateColumns, 'repeat(auto-fill, minmax(min(100%, 230px), 1fr))');
+  assert.ok(!('zoom' in style));
 });
