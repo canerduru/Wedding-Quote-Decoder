@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { moveIndex } from './reorder.js';
+import { moveIndex, indexAtPoint } from './reorder.js';
 
 test('moveIndex: bastan sona tasir', () => {
   assert.deepEqual(moveIndex(['a', 'b', 'c'], 0, 2), ['b', 'c', 'a']);
@@ -28,4 +28,25 @@ test('moveIndex: ayni indeks ve aralik disi indeks diziyi oldugu gibi dondurur',
   assert.equal(moveIndex(input, 0, 3), input);
   assert.equal(moveIndex(input, undefined, 1), input);
   assert.equal(moveIndex(input, 0.5, 1), input);
+});
+
+test('indexAtPoint: noktayi iceren dikdortgenin indeksini verir', () => {
+  const rects = [
+    { left: 0, top: 0, right: 100, bottom: 100 },
+    { left: 110, top: 0, right: 210, bottom: 100 },
+    { left: 0, top: 110, right: 100, bottom: 210 },
+  ];
+  assert.equal(indexAtPoint(rects, 50, 50, 0), 0);
+  assert.equal(indexAtPoint(rects, 150, 20, 0), 1);
+  assert.equal(indexAtPoint(rects, 10, 200, 0), 2);
+});
+
+test('indexAtPoint: bosluktaki ya da dista kalan nokta yedek indeksi verir', () => {
+  const rects = [
+    { left: 0, top: 0, right: 100, bottom: 100 },
+    { left: 110, top: 0, right: 210, bottom: 100 },
+  ];
+  assert.equal(indexAtPoint(rects, 105, 50, 1), 1);
+  assert.equal(indexAtPoint(rects, 500, 500, 0), 0);
+  assert.equal(indexAtPoint([], 1, 1, 0), 0);
 });

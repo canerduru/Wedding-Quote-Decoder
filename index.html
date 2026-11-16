@@ -146,7 +146,6 @@
       import tuscanEstate from '/src/assets/images/venue_tuscan_estate_1794746162354.jpg';
       import modernAtelier from '/src/assets/images/venue_modern_atelier_1794746162634.jpg';
       import Alpine from 'alpinejs';
-      import Sortable from 'sortablejs';
       import * as calc from '/src/calc.js';
       import * as persist from '/src/persist.js';
       import * as decode from '/src/decode.js';
@@ -188,7 +187,6 @@
       window.__MATRIX__ = matrix;
       window.__REORDER__ = reorder;
       window.__CARDSUM__ = cardsummary;
-      window.Sortable = Sortable;
 
       window.Alpine = Alpine;
       Alpine.start();
@@ -831,6 +829,7 @@
           density: 'large',
           cardsOpen: false,
           openCards: {},
+          drag: null,
           topNotes: [
             { key: 'datesNote', label: 'termsDates', edit: 'datesEditLabel' },
             { key: 'durationNote', label: 'termsDuration', edit: 'durationEditLabel' },
@@ -999,26 +998,56 @@
             this.venues = window.__REORDER__.moveIndex(this.venues, from, to);
           },
 
-          initSortable(el) {
-            if (!window.Sortable) return;
-            const sortable = window.Sortable.create(el, {
-              draggable: 'article',
-              handle: '[data-drag-handle]',
-              animation: 150,
-              forceFallback: true,
-              disabled: !this.canReorder(),
-              onEnd: (evt) => {
-                const { item, from, oldDraggableIndex, newDraggableIndex } = evt;
-                from.removeChild(item);
-                const articles = [...from.children].filter((node) => node.tagName === 'ARTICLE');
-                from.insertBefore(item, articles[oldDraggableIndex] || null);
-                this.reorderVenue(oldDraggableIndex, newDraggableIndex);
-              },
-            });
-            this.$watch(
-              () => this.canReorder(),
-              (enabled) => sortable.option('disabled', !enabled)
-            );
+          startDrag(event, venue) {
+            if (!this.canReorder() || event.button > 0) return;
+            const handle = event.currentTarget;
+            const grid = handle.closest('[data-card-grid]');
+            const from = this.venues.findIndex((v) => v.id === venue.id);
+            const x0 = event.clientX;
+            const y0 = event.clientY;
+            handle.setPointerCapture(event.pointerId);
+            this.drag = { id: venue.id, from, over: from, dx: 0, dy: 0 };
+
+            const cardRects = () =>
+              [...grid.querySelectorAll(':scope > article')].map((card, i) => {
+                const r = card.getBoundingClientRect();
+                const shift = i === from ? this.drag : { dx: 0, dy: 0 };
+                return { left: r.left - shift.dx, right: r.right - shift.dx, top: r.top - shift.dy, bottom: r.bottom - shift.dy };
+              });
+            const onMove = (e) => {
+              this.drag.dx = e.clientX - x0;
+              this.drag.dy = e.clientY - y0;
+              this.drag.over = window.__REORDER__.indexAtPoint(cardRects(), e.clientX, e.clientY, this.drag.over);
+            };
+            const stop = () => {
+              handle.removeEventListener('pointermove', onMove);
+              handle.removeEventListener('pointerup', onUp);
+              handle.removeEventListener('pointercancel', onCancel);
+            };
+            const onUp = () => {
+              stop();
+              const { from: start, over } = this.drag;
+              this.drag = null;
+              this.reorderVenue(start, over);
+            };
+            const onCancel = () => {
+              stop();
+              this.drag = null;
+            };
+            handle.addEventListener('pointermove', onMove);
+            handle.addEventListener('pointerup', onUp);
+            handle.addEventListener('pointercancel', onCancel);
+          },
+
+          dragCardStyle(venue) {
+            if (this.drag?.id !== venue.id) return {};
+            return { transform: `translate(${this.drag.dx}px, ${this.drag.dy}px)`, zIndex: 30, transition: 'none' };
+          },
+
+          dragCardClass(venue, index) {
+            if (!this.drag) return '';
+            if (this.drag.id === venue.id) return 'relative shadow-2xl opacity-90 cursor-grabbing';
+            return this.drag.over === index ? 'ring-2 ring-champagne ring-offset-2' : '';
           },
 
           openCard(venueId) {
@@ -3049,16 +3078,17 @@
           <!-- Dynamic Venue Comparison Grid -->
           <div
             x-show="!showTable()"
-            x-init="initSortable($el)"
+            data-card-grid
             class="mt-8 grid grid-cols-1 items-start"
             :class="[venues.length < 2 ? 'max-w-2xl' : '', allCollapsed() ? 'gap-4' : 'gap-7']"
             :style="gridStyle()"
           >
-            <template x-for="venue in venues" :key="venue.id">
+            <template x-for="(venue, index) in venues" :key="venue.id">
               <article
                 :id="'venue-card-' + venue.id"
                 class="flex flex-col justify-between overflow-hidden rounded-[24px] border bg-white shadow-card transition-all duration-200"
-                :class="isBestValue(venue) ? 'border-emeraldSafe/45 ring-1 ring-champagne/30' : 'border-champagne-soft'"
+                :class="[isBestValue(venue) ? 'border-emeraldSafe/45 ring-1 ring-champagne/30' : 'border-champagne-soft', dragCardClass(venue, index)]"
+                :style="dragCardStyle(venue)"
               >
                 <!-- Compact summary: shown while the card is closed -->
                 <div x-show="!isCardOpen(venue)" x-cloak>
@@ -3074,7 +3104,7 @@
                     />
                     <button
                       type="button"
-                      data-drag-handle
+                      @pointerdown.prevent="startDrag($event, venue)"
                       x-show="canReorder()"
                       :title="t('dragHandleLabel')"
                       :aria-label="t('dragHandleLabel')"

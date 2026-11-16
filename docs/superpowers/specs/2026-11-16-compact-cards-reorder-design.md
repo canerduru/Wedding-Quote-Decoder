@@ -56,11 +56,14 @@ kapalıyken kullanıcı kartların sırasını sürükleyip bırakarak değişti
   Aksi halde tutamaç gizlenir.
 - Sürükleme sadece tutamaçtan başlar (`handle`), böylece telefonda sayfa kaydırma
   ile karışmaz.
-- Kütüphane: SortableJS, npm ile paketlenir, mevcut Vite build'ine girer. Fare ve
-  dokunmatik çalışır.
-- Alpine render'ı doğru kaynak kalır: sürükleme bitince (`onEnd`) kütüphanenin
-  taşıdığı DOM düğümü eski yerine geri alınır, sonra `venues` dizisi
-  `moveItem(...)` ile güncellenir ve Alpine yeniden çizer.
+- Kendi pointer-event sürüklemesi, bağımlılık yok. Tutamaçta `pointerdown` ile başlar,
+  `setPointerCapture` ile fare ve dokunmatikte aynı çalışır (tutamaçta `touch-none`).
+- DOM'a dokunulmaz: sürüklenen kart Alpine durumundaki `drag` ile CSS `transform`
+  kullanarak imleci izler, hedef kart halkayla işaretlenir, bırakınca `venues` dizisi
+  güncellenir. Hedef kart `indexAtPoint` ile bulunur.
+- SortableJS denendi ve bırakıldı: `forceFallback` sürükleme klonunu `x-for` kapsamı
+  dışında DOM'a ekliyor, Alpine onu başlatmaya çalışıp her sürüklemede yüzlerce
+  `venue is not defined` hatası üretiyor.
 - Sıra `venues` dizisinin kendisidir. `serializeState` zaten diziyi sırasıyla
   kaydettiği için yenilemeden sonra da korunur. Tablo ve `matrix` aynı diziyi okur.
 - Sürüklemeye özel geri alma yok.
@@ -69,13 +72,12 @@ kapalıyken kullanıcı kartların sırasını sürükleyip bırakarak değişti
 
 | Dosya | Değişiklik |
 |---|---|
-| `src/reorder.js` (yeni) | `moveIndex(list, from, to)` (yeni dizi döner, aralık dışı ya da aynı indekste aynı diziyi döner) |
+| `src/reorder.js` (yeni) | `moveIndex(list, from, to)` (yeni dizi döner, aralık dışı ya da aynı indekste aynı diziyi döner), `indexAtPoint(rects, x, y, fallback)` |
 | `src/reorder.test.js` (yeni) | birim testler |
 | `src/cardsummary.js` (yeni) | `cardSummary(venue, guestCount)` -> `{ totalEur, perGuestEur, included, gaps }` |
 | `src/cardsummary.test.js` (yeni) | birim testler |
 | `src/viewmode.js` | `CARDS_OPEN_KEY`, `loadCardsOpen/saveCardsOpen`, `compactGridStyle()` |
 | `src/viewmode.test.js` | yeni fonksiyonların testleri |
-| `package.json` | `sortablejs` bağımlılığı (sabit sürüm) |
 | `index.html` | özet başlık, açılır gövde, genel buton, Sortable bağlantısı, TR/EN metinler |
 
 `index.html` içinde yeni durum ve metotlar: `cardsOpen`, `openCards`, `isCardOpen(venue)`,
@@ -86,10 +88,10 @@ Yeni i18n anahtarları (TR/EN): `cardsExpandAll`, `cardsCollapseAll`, `cardExpan
 
 ## Hata ve uç durumlar
 
-- Sortable yüklenemezse ya da `window.Sortable` yoksa sıralama sessizce devre dışı kalır,
-  kartlar yine açılıp kapanır.
-- Sürükleme sırasında yeni kart eklenirse ya da silinirse `onEnd` id ile çalıştığı için
-  yanlış kart taşınmaz.
+- Sürükleme iptal edilirse (`pointercancel`) sıra değişmez.
+- Sürükleme bırakılınca kart indeksleri başlangıçtaki dizi üzerinden hesaplandığı için
+  sürükleme sırasında eklenen ya da silinen bir kart sırayı bozmaz (yeni indeksler aralık
+  kontrolünden geçer).
 - Kapalı kartta ad boşsa `displayVenueName` zaten yedek adı döner.
 - `localStorage` engelliyse genel durum sadece bellekte kalır (mevcut `viewmode`
   kalıbıyla aynı try/catch).

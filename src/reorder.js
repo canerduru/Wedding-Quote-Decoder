@@ -6,3 +6,8 @@ export function moveIndex(list, from, to) {
   next.splice(to, 0, item);
   return next;
 }
+
+export function indexAtPoint(rects, x, y, fallback) {
+  const hit = rects.findIndex((r) => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom);
+  return hit === -1 ? fallback : hit;
+}
