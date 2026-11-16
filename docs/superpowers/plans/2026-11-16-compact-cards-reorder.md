@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-11-16-compact-cards-reorder-design.md`
 
+> **Deviation recorded during execution:** Tasks 4 and 5 describe SortableJS. It was implemented, then dropped: its fallback drag appends a clone of the card outside the `x-for` scope and Alpine threw ~270 `venue is not defined` errors per drag. The final code uses a pointer-capture drag driven by Alpine state (`startDrag`, `dragCardStyle`, `dragCardClass`) plus a tested `indexAtPoint` in `src/reorder.js`; there is no SortableJS dependency and no `initSortable`. Commit `0403b05`.
+
 **Working directory:** `/Users/caner/Developer/Wedding-Quote-Decoder`, branch `feat/comparison-redesign` (the redesign commit `96009e8` is not pushed yet; this work ships in the same PR).
 
 **Conventions:** TDD for every `src/` module. Conventional commits ending with `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`. No emoji in code or UI strings. No code comments unless the reason is non-obvious. Never put an API key anywhere in the repo.
