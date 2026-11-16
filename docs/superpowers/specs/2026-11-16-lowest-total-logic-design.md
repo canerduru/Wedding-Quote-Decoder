@@ -49,9 +49,8 @@ göre hesaplanıyor. Kullanıcı yanlış mekanı en ucuz sanabilir.
 - `src/table.js`: `buildComparison` `lowestStanding` sonucunu kullanır; sütunlara
   `best`, `deltaEur` ve `complete` alanları gelir.
 - `index.html`: `isBestValue(venue)` ve `getDeltaFromLowest(venue)` sarmalayıcıları
-  `lowestStanding` sonucuna bakar. Hesaplama render başına bir kez yapılır (getter ile
-  önbelleğe alınır), mekan başına tekrar edilmez. `getLowestTotalEur` sarmalayıcısı
-  kullanılmıyorsa silinir.
+  `lowestStanding` sonucuna bakar. Sonuç önbelleğe alınmaz (Alpine getter'ları zaten
+  önbelleklenmez, mekan sayısı küçüktür). `getLowestTotalEur` sarmalayıcısı silinir.
 - `src/calc.js`: `getLowestTotalEur`, `getDeltaFromLowest`, `isBestValue` kaldırılır;
   `calc.test.js` içindeki H3 testleri `lowest.test.js` içine taşınıp yeni kurala göre
   yeniden yazılır.
