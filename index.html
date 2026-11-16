@@ -146,6 +146,7 @@
       import tuscanEstate from '/src/assets/images/venue_tuscan_estate_1794746162354.jpg';
       import modernAtelier from '/src/assets/images/venue_modern_atelier_1794746162634.jpg';
       import Alpine from 'alpinejs';
+      import Sortable from 'sortablejs';
       import * as calc from '/src/calc.js';
       import * as persist from '/src/persist.js';
       import * as decode from '/src/decode.js';
@@ -164,6 +165,8 @@
       import * as summary from '/src/summary.js';
       import * as pasted from '/src/pasted.js';
       import * as matrix from '/src/matrix.js';
+      import * as reorder from '/src/reorder.js';
+      import * as cardsummary from '/src/cardsummary.js';
 
       window.__CALC__ = calc;
       window.__PERSIST__ = persist;
@@ -183,6 +186,9 @@
       window.__SUMMARY__ = summary;
       window.__PASTED__ = pasted;
       window.__MATRIX__ = matrix;
+      window.__REORDER__ = reorder;
+      window.__CARDSUM__ = cardsummary;
+      window.Sortable = Sortable;
 
       window.Alpine = Alpine;
       Alpine.start();
